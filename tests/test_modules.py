@@ -93,11 +93,34 @@ class ModuleTests(unittest.TestCase):
         self.assertFalse(gym.status('01-wordstats')['project']['module']['enabled'])
         self.assertEqual(len(gym.projects()), 52)
 
-    def test_chooser_accepts_numbers_and_none(self):
-        with patch('builtins.input', return_value='1, 3'):
-            self.assertEqual(modules.choose(), ['go', 'javascript'])
-        with patch('builtins.input', return_value='none'):
-            self.assertEqual(modules.choose(), [])
+    def test_checklist_preserves_selection_and_expands_rails(self):
+        from subprocess import CompletedProcess
+        with patch.object(modules.sys.stdin, 'isatty', return_value=True), patch.object(modules.shutil, 'which', return_value='/usr/bin/gum'), patch.object(modules.subprocess, 'run', return_value=CompletedProcess([], 0, 'Go\nRuby on Rails · includes Ruby\n')) as run:
+            self.assertEqual(modules.choose(['go', 'web']), ['go', 'ruby', 'rails'])
+        args = run.call_args.args[0]
+        self.assertIn('--no-limit', args)
+        initial = args[args.index('--selected')+1].split(',')
+        self.assertEqual(initial, ['Go', 'Web (HTML / CSS / React / Vue / Tailwind)'])
+        self.assertIn('[x] ', args)
+
+    def test_checklist_can_confirm_no_modules_and_preserves_empty_default(self):
+        from subprocess import CompletedProcess
+        with patch.object(modules.sys.stdin, 'isatty', return_value=True), patch.object(modules.shutil, 'which', return_value='/usr/bin/gum'), patch.object(modules.subprocess, 'run', return_value=CompletedProcess([], 0, '\n')) as run:
+            self.assertEqual(modules.choose([]), [])
+            args = run.call_args.args[0]
+            self.assertEqual(args[args.index('--selected')+1], '')
+            modules.choose()
+            args = run.call_args.args[0]
+            self.assertEqual(args[args.index('--selected')+1], 'Go')
+
+    def test_cancelled_checklist_cannot_stop_backend_or_change_modules(self):
+        from subprocess import CompletedProcess
+        modules.configure(self.root, ['javascript'])
+        with patch('gym.cli.ROOT', self.root), patch('gym.cli.Client') as client, patch.object(modules.sys.stdin, 'isatty', return_value=True), patch.object(modules.shutil, 'which', return_value='/usr/bin/gum'), patch.object(modules.subprocess, 'run', return_value=CompletedProcess([], 130, '')):
+            self.assertEqual(main(['modules', 'choose']), 130)
+        client.return_value.identity.assert_not_called()
+        client.return_value.stop.assert_not_called()
+        self.assertEqual(modules.enabled(self.root), ['javascript'])
 
     def test_ruby_runner_prefers_small_bundle_and_rails_keeps_full_bundle(self):
         (self.root/'.runtime/gems-ruby').mkdir(parents=True)

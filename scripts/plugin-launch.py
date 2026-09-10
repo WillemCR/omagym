@@ -165,7 +165,7 @@ def prepare(source, base, allow_packages=True, install_launcher=True, modules=No
         if modules is not None or choose_modules or not configured:
             selected = modules
             if selected is None:
-                selected = practice_modules.choose(practice_modules.enabled(app) if configured else []) if sys.stdin.isatty() else []
+                selected = practice_modules.choose(practice_modules.enabled(app) if configured else None) if sys.stdin.isatty() else []
             stop_owned_backend(app)
             practice_modules.configure(app, selected, env=env)
         else:

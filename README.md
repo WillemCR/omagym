@@ -16,7 +16,7 @@ On an x86-64 Omarchy laptop with the Quickshell plugin system:
 omarchy plugin add https://github.com/WillemCR/omagym.git --enable
 ```
 
-Click the **dumbbell icon** in your bar. First launch installs the shared app dependencies, builds the dashboard and asks which language modules you want. Choose Go without needing Ruby, Rails, Rust or Chromium. Existing plugin installations also get this choice the first time they update to modular setup; saved work is preserved.
+Click the **dumbbell icon** in your bar. First launch installs the shared app dependencies, builds the dashboard and shows a checklist of language modules. Choose Go without needing Ruby, Rails, Rust or Chromium. Existing plugin installations also get this choice the first time they update to modular setup; saved work is preserved.
 
 **Omagym does not install or upgrade system packages.** If a selected module needs tools you do not have, it names the missing tools so you can install a compatible version yourself. Base setup needs Python, Git, Node 24+, npm and Bubblewrap with working user namespaces. Node is shared by the dashboard even when you only practice Go. First setup needs internet access for locked app dependencies; Ruby/Rails gems are downloaded only when you enable those modules. Your existing Codex login remains user-managed.
 
@@ -66,6 +66,8 @@ omagym modules remove rails    # Keeps Ruby, dependencies and all your files
 The frontend and web tooling share the app's npm dependencies. Module selection controls optional system toolchain requirements and Ruby/Rails bundles; it does not split every JavaScript package into a separate download.
 
 Selections live in `.runtime/modules.json`. A disabled track remains browsable, but tests, previews and project generation explain which module to enable. You can enable more later without reinstalling the app. Re-run `modules add ruby` or `modules add rails` if you deliberately change system Ruby or need to refresh that module’s locked bundle. An idle running backend restarts after module changes; active operations must finish first. Disabling modules never uninstalls packages, deletes gems, or deletes learner files. Existing manual checkouts retain access until you explicitly choose modules.
+
+The interactive language chooser is a checkbox list: **↑/↓** to move, **X** to toggle, **Enter** to confirm, **Esc** to cancel. Existing selections are checked; first setup starts with Go checked. You can uncheck everything. Rails also enables Ruby. The checklist uses `gum`, included with Omarchy; explicit `modules add/remove` commands do not need it.
 
 Non-interactive plugin setup can use `--modules go,javascript` or `--modules none`; without an explicit selection it prepares just the base app. For an existing plugin installation, `--choose-modules` opens the chooser again.
 

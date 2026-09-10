@@ -139,7 +139,7 @@ def main(argv=None):
         if args.action == 'modules':
             from . import modules
             if args.operation != 'list':
-                names = modules.choose(modules.enabled(ROOT) if modules.config_path(ROOT).exists() else []) if args.operation == 'choose' else args.names
+                names = modules.choose(modules.enabled(ROOT) if modules.config_path(ROOT).exists() else None) if args.operation == 'choose' else args.names
                 if args.operation in ('add', 'remove') and not names:
                     raise GymError('Name at least one module, for example: omagym modules add go')
                 # Dependency changes happen only after an owned backend is idle.
@@ -252,7 +252,7 @@ def main(argv=None):
         else: print('Omagym: '+plain(e), file=sys.stderr)
         return code
     except KeyboardInterrupt:
-        print('\nCancelled. Running backend operations may continue.', file=sys.stderr)
+        print('\nCancelled.' if args.action == 'modules' else '\nCancelled. Running backend operations may continue.', file=sys.stderr)
         return 130
 
 

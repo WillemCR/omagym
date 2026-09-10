@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
@@ -54,22 +55,33 @@ def info(root, track):
             'command': 'omagym modules add '+name}
 
 
-def choose(current=()):
-    names = list(MODULES)
-    print('\nChoose the languages you want to practice. Other toolchains are optional.\n')
-    for i, name in enumerate(names, 1):
-        print(f"  {i}. {MODULES[name]['name']}"+(' [enabled]' if name in current else ''))
-    default = ','.join(current) if current else 'go'
-    answer = input(f'\nNames or numbers, separated by commas [{default}], or none: ').strip()
-    answer = answer or default
-    if answer.lower() == 'none':
-        return []
-    values = [part.strip().lower() for part in answer.replace(' ', ',').split(',') if part.strip()]
-    try:
-        values = [names[int(v)-1] if v.isdecimal() and 1 <= int(v) <= len(names) else v for v in values]
-        return normalize(values)
-    except (ValueError, TypeError) as error:
-        raise ValueError('Choose module names or numbers from the list.') from error
+def choose(current=None):
+    if not sys.stdin.isatty():
+        raise RuntimeError('Open the language checklist in a terminal, or use: omagym modules add <language>')
+    gum = shutil.which('gum')
+    if not gum:
+        raise RuntimeError('The checklist needs gum (included with Omarchy). You can also use: omagym modules add <language>')
+    # Gum separates initial selections with commas, so display labels avoid them.
+    labels = {name: spec['name'].replace(', ', ' / ') for name, spec in MODULES.items()}
+    labels['rails'] += ' · includes Ruby'
+    selected = normalize(['go'] if current is None else current)
+    result = subprocess.run([
+        gum, 'choose', '--no-limit', '--height', str(len(labels)),
+        '--header', 'Choose your languages\n↑/↓: move · X: toggle · Enter: confirm · Esc: cancel',
+        '--cursor', '> ', '--cursor-prefix', '[ ] ',
+        '--selected-prefix', '[x] ', '--unselected-prefix', '[ ] ',
+        '--selected', ','.join(labels[name] for name in selected),
+        '--output-delimiter', '\n', *labels.values(),
+    ], text=True, stdout=subprocess.PIPE)
+    if result.returncode in (1, 130, -2):
+        raise KeyboardInterrupt
+    if result.returncode:
+        raise RuntimeError('The language checklist could not open. Your module selection was not changed.')
+    names = {label: name for name, label in labels.items()}
+    chosen = [label for label in result.stdout.splitlines() if label]
+    if any(label not in names for label in chosen):
+        raise RuntimeError('The checklist returned an unknown language. Your module selection was not changed.')
+    return normalize([names[label] for label in chosen])
 
 
 def command(args, *, cwd=None, env=None, capture=False):
