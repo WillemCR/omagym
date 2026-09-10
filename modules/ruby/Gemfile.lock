@@ -3,7 +3,7 @@ GEM
   specs:
     csv (3.3.6)
     drb (2.2.3)
-    json (2.21.2)
+    json (3.0.0)
     minitest (6.0.6)
       drb (~> 2.0)
       prism (~> 1.5)
@@ -15,14 +15,14 @@ PLATFORMS
 
 DEPENDENCIES
   csv (= 3.3.6)
-  json (= 2.21.2)
+  json (= 3.0.0)
   minitest (= 6.0.6)
 
 CHECKSUMS
   bundler (4.0.20) sha256=7978a8ac648767f5e635bc522445b79e80a52b907a39a36c2d8085ed6bc762ae
   csv (3.3.6) sha256=aba61e7e507a66f03d45cb1f3c4b6359861c3504038b422962875dce099e4456
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
-  json (2.21.2) sha256=1f1d3b7cf2b3ba1a69beca0bb6db13d5438b80bff3cd54cdaaa620b9b07c1c6a
+  json (3.0.0) sha256=1ff82a28c05c5cc7b646f3e3a3ac710e4ae2aa933690cba12f1f650b0ecdeb99
   minitest (6.0.6) sha256=153ea36d1d987a62942382b61075745042a2b3123b1cd48f4c3675af9cc7d6f1
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
 

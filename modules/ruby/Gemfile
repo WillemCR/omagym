@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 gem 'minitest', '6.0.6'
 gem 'csv', '3.3.6'
-gem 'json', '2.21.2'
+gem 'json', '3.0.0'
