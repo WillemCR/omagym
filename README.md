@@ -16,7 +16,7 @@ On an x86-64 Omarchy laptop with the Quickshell plugin system:
 omarchy plugin add https://github.com/WillemCR/omagym.git --enable
 ```
 
-Click **<> Omagym** in your bar. First launch installs the shared app dependencies, builds the dashboard and asks which language modules you want. Choose Go without needing Ruby, Rails, Rust or Chromium. Existing plugin installations also get this choice the first time they update to modular setup; saved work is preserved.
+Click the **dumbbell icon** in your bar. First launch installs the shared app dependencies, builds the dashboard and asks which language modules you want. Choose Go without needing Ruby, Rails, Rust or Chromium. Existing plugin installations also get this choice the first time they update to modular setup; saved work is preserved.
 
 **Omagym does not install or upgrade system packages.** If a selected module needs tools you do not have, it names the missing tools so you can install a compatible version yourself. Base setup needs Python, Git, Node 24+, npm and Bubblewrap with working user namespaces. Node is shared by the dashboard even when you only practice Go. First setup needs internet access for locked app dependencies; Ruby/Rails gems are downloaded only when you enable those modules. Your existing Codex login remains user-managed.
 
