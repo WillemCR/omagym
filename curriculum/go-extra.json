@@ -1,0 +1,589 @@
+[
+  {
+    "id": "go-06-log-analyzer",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Log desk",
+    "level": "06 \u00b7 Streaming input",
+    "summary": "Summarize a stream of application log events without keeping the whole log in memory.",
+    "skills": [
+      "bufio",
+      "io.Reader",
+      "validation"
+    ],
+    "requirements": [
+      "Implement Analyze(r io.Reader) (Report, error) in package challenge. Report has Counts map[string]int and LastError string.",
+      "Each nonblank line has LEVEL|message. Split at the first |, trim both parts, and allow INFO, WARN and ERROR only. Additional | characters belong to the message.",
+      "Count each level and remember the last ERROR message. Empty messages, unknown levels or missing delimiters return a nil Counts map and an error.",
+      "Ignore whitespace-only lines. Empty input succeeds with an empty map. Propagate reader errors; inputs have lines shorter than 32 KiB."
+    ],
+    "docs": [
+      {
+        "title": "Buffered scanning",
+        "url": "https://pkg.go.dev/bufio"
+      },
+      {
+        "title": "String operations",
+        "url": "https://pkg.go.dev/strings"
+      },
+      {
+        "title": "Readers",
+        "url": "https://pkg.go.dev/io"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestSummary",
+      "TestEmpty",
+      "TestMalformed",
+      "TestReaderFailure"
+    ]
+  },
+  {
+    "id": "go-07-config-loader",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Launch config",
+    "level": "07 \u00b7 Configuration",
+    "summary": "Turn a small configuration file into a validated server configuration.",
+    "skills": [
+      "parsing",
+      "defaults",
+      "errors"
+    ],
+    "requirements": [
+      "Implement Parse(text string) (Config, error) in package challenge. Config has Address string, Workers int, Debug bool.",
+      "Start with Address=127.0.0.1:8080, Workers=4, Debug=false. Ignore blank lines and lines whose trimmed form begins with #.",
+      "Other lines are key=value; trim whitespace around both sides. Supported keys are address, workers, debug. Each key may appear only once.",
+      "address must be nonempty; workers must be a base-10 integer from 1 through 64; debug must be exactly true or false.",
+      "Reject missing =, unknown keys, duplicates and invalid values. On any error return Config{}; values may contain additional = characters."
+    ],
+    "docs": [
+      {
+        "title": "Strings",
+        "url": "https://pkg.go.dev/strings"
+      },
+      {
+        "title": "Integer parsing",
+        "url": "https://pkg.go.dev/strconv"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestDefaults",
+      "TestValues",
+      "TestRejectedConfig"
+    ]
+  },
+  {
+    "id": "go-08-calendar-planner",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Busy blocks",
+    "level": "08 \u00b7 Slices & sorting",
+    "summary": "Combine overlapping calendar bookings into a clean list of busy periods.",
+    "skills": [
+      "slices",
+      "sorting",
+      "immutability"
+    ],
+    "requirements": [
+      "Implement Merge(input []Interval) ([]Interval, error) in package challenge. Interval has Start and End int, measured in minutes.",
+      "Each interval must satisfy 0 <= Start < End <= 1440. Invalid input returns nil and an error.",
+      "Return intervals sorted by Start, combining overlaps and touching endpoints. A booking ending at 60 and one starting at 60 form one block.",
+      "Do not mutate or alias the input slice. Empty input succeeds with an empty result; nil and empty results are both acceptable."
+    ],
+    "docs": [
+      {
+        "title": "Sorting",
+        "url": "https://pkg.go.dev/sort"
+      },
+      {
+        "title": "Slices",
+        "url": "https://pkg.go.dev/slices"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestMergeBookings",
+      "TestNoMutation",
+      "TestBoundaries"
+    ]
+  },
+  {
+    "id": "go-09-ttl-cache",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Expiring notes",
+    "level": "09 \u00b7 Time & synchronization",
+    "summary": "Build an expiring string cache with an explicit clock so its behavior is deterministic.",
+    "skills": [
+      "time",
+      "sync.Mutex",
+      "maps"
+    ],
+    "requirements": [
+      "Implement New(ttl time.Duration) (*Cache,error), (*Cache).Set(key,value string, now time.Time), and (*Cache).Get(key string, now time.Time) (string,bool).",
+      "New requires a positive TTL. Each Set stores a value until now+ttl and replaces any existing value and expiry for that key.",
+      "Get succeeds only before the expiry instant. At or after expiry it returns empty string,false. A missing key does the same; empty keys and values are allowed.",
+      "Different caches are independent. Set and Get must be safe for concurrent use. Tests pass explicit times; do not sleep or consult the wall clock."
+    ],
+    "docs": [
+      {
+        "title": "Time",
+        "url": "https://pkg.go.dev/time"
+      },
+      {
+        "title": "Synchronization",
+        "url": "https://pkg.go.dev/sync"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestExpiry",
+      "TestReplacementAndIsolation",
+      "TestInvalidTTL",
+      "TestConcurrentCache"
+    ]
+  },
+  {
+    "id": "go-10-ring-buffer",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Recent activity",
+    "level": "10 \u00b7 Generics",
+    "summary": "Keep a bounded history of recent events with a reusable generic ring buffer.",
+    "skills": [
+      "generics",
+      "queues",
+      "zero values"
+    ],
+    "requirements": [
+      "Implement New[T any](capacity int) (*Ring[T],error), Push(value T) (T,bool), Pop() (T,bool), and Len() int on Ring[T].",
+      "Capacity must be positive. Push appends a new newest item; when full it evicts and returns the oldest item with true. Otherwise return the zero value of T,false.",
+      "Pop removes and returns the oldest item with true; an empty ring returns the zero value,false. Len reports the current number of items.",
+      "Support arbitrary element types and repeated wraparound. Separate rings must not share state. Concurrent access is not required."
+    ],
+    "docs": [
+      {
+        "title": "Generics tutorial",
+        "url": "https://go.dev/doc/tutorial/generics"
+      },
+      {
+        "title": "Builtin functions",
+        "url": "https://pkg.go.dev/builtin"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestEvictionOrder",
+      "TestWrapAndTypes",
+      "TestInvalidCapacity"
+    ]
+  },
+  {
+    "id": "go-11-dependency-planner",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Build order",
+    "level": "11 \u00b7 Graphs",
+    "summary": "Plan a deterministic build order for a collection of dependent tasks.",
+    "skills": [
+      "graphs",
+      "maps",
+      "determinism"
+    ],
+    "requirements": [
+      "Implement Order(graph map[string][]string) ([]string,error). Each map key is a task; its values are prerequisite task names.",
+      "Return each task exactly once after all its prerequisites. Whenever multiple unfinished tasks are ready, choose the lexicographically smallest next.",
+      "Reject a prerequisite absent from the graph, any cycle (including self-dependencies), and empty task names. Return nil on error.",
+      "Duplicate prerequisite entries count as one dependency. Do not mutate the graph or its slices. Empty graphs succeed with an empty result."
+    ],
+    "docs": [
+      {
+        "title": "Maps",
+        "url": "https://pkg.go.dev/maps"
+      },
+      {
+        "title": "Sorting",
+        "url": "https://pkg.go.dev/sort"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestBuildOrder",
+      "TestReadySelection",
+      "TestInvalidGraph"
+    ]
+  },
+  {
+    "id": "go-12-retry-controller",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Retry desk",
+    "level": "12 \u00b7 Context & errors",
+    "summary": "Control a retryable operation without hiding its errors or ignoring cancellation.",
+    "skills": [
+      "context",
+      "errors",
+      "callbacks"
+    ],
+    "requirements": [
+      "Implement Retry(ctx context.Context, attempts int, operation func() error) error.",
+      "attempts is the maximum total number of calls and must be positive. A nil operation is invalid. Invalid arguments return an error without calling the operation.",
+      "Check ctx.Err() before every call. Return that context error immediately when canceled; a pre-canceled context makes zero calls.",
+      "Stop and return nil at the first successful call. If every allowed call fails, return the last operation error unchanged so errors.Is works.",
+      "No delay or background goroutines are required. An operation that cancels the context and fails prevents the next attempt; a successful operation still returns nil."
+    ],
+    "docs": [
+      {
+        "title": "Context",
+        "url": "https://pkg.go.dev/context"
+      },
+      {
+        "title": "Errors",
+        "url": "https://pkg.go.dev/errors"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestRetrySuccess",
+      "TestFinalError",
+      "TestCancellation",
+      "TestInvalidRetry"
+    ]
+  },
+  {
+    "id": "go-13-snapshot-diff",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Snapshot review",
+    "level": "13 \u00b7 Data modeling",
+    "summary": "Show exactly what changed between two named configuration snapshots.",
+    "skills": [
+      "maps",
+      "sorting",
+      "structs"
+    ],
+    "requirements": [
+      "Implement Diff(before,after map[string]string) []Change. Change has Key, Kind, Before, After string fields.",
+      "Emit one Change for every added, removed or changed key, sorted lexicographically by Key. Kind is exactly added, removed or changed.",
+      "For added keys Before is empty; for removed keys After is empty. An existing empty value differs from an absent key.",
+      "Omit unchanged keys. Nil maps behave as empty maps. Do not mutate either input; empty output may be nil or an empty slice."
+    ],
+    "docs": [
+      {
+        "title": "Sorting",
+        "url": "https://pkg.go.dev/sort"
+      },
+      {
+        "title": "Maps",
+        "url": "https://pkg.go.dev/maps"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestChanges",
+      "TestEmptyValues",
+      "TestIdenticalAndNil"
+    ]
+  },
+  {
+    "id": "go-14-template-renderer",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Mail preview",
+    "level": "14 \u00b7 Templates & escaping",
+    "summary": "Render a safe HTML email preview from a template and recipient data.",
+    "skills": [
+      "html/template",
+      "escaping",
+      "error handling"
+    ],
+    "requirements": [
+      "Implement Render(source string,data map[string]string) (string,error) using Go HTML template semantics.",
+      "Support ordinary field references such as {{.Name}}, conditionals, and standard built-in template functions. Escape inserted values according to their HTML context.",
+      "A missing map key, invalid template syntax, or execution failure returns empty string and an error, never partial rendered output.",
+      "An empty template succeeds with an empty string. Preserve ordinary source whitespace. Do not mutate data or treat values as trusted HTML."
+    ],
+    "docs": [
+      {
+        "title": "HTML templates",
+        "url": "https://pkg.go.dev/html/template"
+      },
+      {
+        "title": "Bytes buffers",
+        "url": "https://pkg.go.dev/bytes"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestHTMLRendering",
+      "TestTemplateLogic",
+      "TestTemplateErrors"
+    ]
+  },
+  {
+    "id": "go-15-framed-messages",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Wire packets",
+    "level": "15 \u00b7 Binary I/O",
+    "summary": "Read and write length-prefixed messages on a byte stream.",
+    "skills": [
+      "encoding/binary",
+      "io",
+      "protocols"
+    ],
+    "requirements": [
+      "Implement WriteFrame(w io.Writer,payload []byte) error and ReadFrame(r io.Reader) ([]byte,error).",
+      "A frame is a four-byte unsigned big-endian payload length followed by that many bytes. Payloads may contain any bytes and may be empty. Maximum payload length is 65536 bytes.",
+      "WriteFrame rejects oversized payloads before writing anything, propagates writer errors, and returns io.ErrShortWrite when a Write returns fewer bytes than requested with no error.",
+      "ReadFrame consumes exactly one frame, supports readers returning small chunks, and rejects oversized announced lengths before reading their body.",
+      "Return io.EOF when no header bytes are available and io.ErrUnexpectedEOF for a partial header or body. On error return nil payload. Leave subsequent frames unread."
+    ],
+    "docs": [
+      {
+        "title": "Binary encoding",
+        "url": "https://pkg.go.dev/encoding/binary"
+      },
+      {
+        "title": "Readers and writers",
+        "url": "https://pkg.go.dev/io"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestFrameRoundTrip",
+      "TestWireFormatAndChunks",
+      "TestMalformedFrames",
+      "TestWriterFailure"
+    ]
+  },
+  {
+    "id": "go-16-http-middleware",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Private endpoint",
+    "level": "16 \u00b7 HTTP composition",
+    "summary": "Protect an existing HTTP handler with a small bearer-token middleware.",
+    "skills": [
+      "net/http",
+      "middleware",
+      "httptest"
+    ],
+    "requirements": [
+      "Implement RequireToken(next http.Handler,token string) http.Handler. The returned handler only calls next when Authorization equals exactly Bearer followed by one space and token.",
+      "An empty configured token always denies access. Missing, incorrect or differently formatted Authorization returns status 401, header WWW-Authenticate: Bearer, and body unauthorized followed by a newline.",
+      "Successful requests preserve next's status, headers and body and pass through the original request including method, URL and body. Do not alter it.",
+      "Support simultaneous requests with no shared request state. Tests run handlers in process; no listening port is needed."
+    ],
+    "docs": [
+      {
+        "title": "HTTP handlers",
+        "url": "https://pkg.go.dev/net/http"
+      },
+      {
+        "title": "HTTP testing",
+        "url": "https://pkg.go.dev/net/http/httptest"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestAuthorized",
+      "TestDenied",
+      "TestConcurrentMiddleware"
+    ]
+  },
+  {
+    "id": "go-17-url-builder",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Search links",
+    "level": "17 \u00b7 URL encoding",
+    "summary": "Generate shareable search links without losing existing URL details.",
+    "skills": [
+      "net/url",
+      "validation",
+      "encoding"
+    ],
+    "requirements": [
+      "Implement AddQuery(base string,params map[string][]string) (string,error).",
+      "Accept absolute http or https URLs with a nonempty hostname and no user information. Reject malformed URLs, invalid percent escapes and malformed existing query strings.",
+      "Preserve the path, fragment, and existing query keys not present in params. For each supplied key, replace all old values with the given values in their original order; a nil or empty slice deletes that key.",
+      "Encode the resulting query using Go url.Values.Encode semantics, including lexicographically sorted keys and escaped special characters.",
+      "Do not mutate params or its slices. Invalid input returns empty string and an error."
+    ],
+    "docs": [
+      {
+        "title": "URL parsing",
+        "url": "https://pkg.go.dev/net/url"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestQueryReplacement",
+      "TestQueryBoundaries",
+      "TestInvalidURLs"
+    ]
+  },
+  {
+    "id": "go-18-file-manifest",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Folder manifest",
+    "level": "18 \u00b7 Filesystem interfaces",
+    "summary": "Produce a portable fingerprint manifest for every file in a virtual filesystem.",
+    "skills": [
+      "io/fs",
+      "crypto/sha256",
+      "interfaces"
+    ],
+    "requirements": [
+      "Implement Manifest(fsys fs.FS) ([]Entry,error). Entry has Path string, Size int64, SHA256 string.",
+      "Walk from . and include every regular file, including dotfiles, recursively. Exclude directories. Return entries sorted lexicographically by slash-separated Path.",
+      "Size is the number of bytes read and SHA256 is the lowercase hexadecimal SHA-256 digest of those bytes. Empty files are included.",
+      "Reject non-regular entries such as symlinks rather than following them. Propagate walk, open and read errors; on any error return nil entries.",
+      "Use only the supplied fs.FS, never the host working directory. Empty filesystems succeed with an empty result."
+    ],
+    "docs": [
+      {
+        "title": "Filesystem interfaces",
+        "url": "https://pkg.go.dev/io/fs"
+      },
+      {
+        "title": "SHA-256",
+        "url": "https://pkg.go.dev/crypto/sha256"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestManifest",
+      "TestEmptyManifest",
+      "TestManifestErrors"
+    ]
+  },
+  {
+    "id": "go-19-event-bus",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Event room",
+    "level": "19 \u00b7 Callbacks & concurrency",
+    "summary": "Build a synchronous event bus that permits subscriptions to change during delivery.",
+    "skills": [
+      "callbacks",
+      "sync.Mutex",
+      "snapshots"
+    ],
+    "requirements": [
+      "Implement NewBus() *Bus, (*Bus).Subscribe(topic string,fn func(string)) func(), and (*Bus).Publish(topic,message string).",
+      "Subscribe registers a callback and returns an idempotent unsubscribe function. A nil callback registers nothing and returns a callable no-op. Empty topics and messages are valid.",
+      "Publish synchronously calls each subscription present at the start of that publish exactly once, in subscription order, only for the matching topic.",
+      "Subscriptions added or removed during callbacks affect later publishes, not the current delivery snapshot. Callbacks may subscribe, unsubscribe or publish without deadlock.",
+      "Bus operations are safe concurrently. Different simultaneous Publish calls may invoke the same callback concurrently; callbacks are responsible for their own shared data. Different buses are independent."
+    ],
+    "docs": [
+      {
+        "title": "Synchronization",
+        "url": "https://pkg.go.dev/sync"
+      },
+      {
+        "title": "Function types",
+        "url": "https://pkg.go.dev/builtin"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestTopicDelivery",
+      "TestDeliverySnapshot",
+      "TestReentrantPublish",
+      "TestConcurrentBus"
+    ]
+  },
+  {
+    "id": "go-20-transaction-ledger",
+    "track": "go",
+    "runner": "go",
+    "entry": "main.go",
+    "title": "Atomic wallet",
+    "level": "20 \u00b7 Capstone",
+    "summary": "Apply batches of wallet transfers atomically while keeping account balances consistent.",
+    "skills": [
+      "transactions",
+      "overflow",
+      "synchronization"
+    ],
+    "requirements": [
+      "Implement NewLedger(initial map[string]int64) (*Ledger,error), (*Ledger).Apply(batch []Transfer) error, and (*Ledger).Snapshot() map[string]int64. Transfer has From,To string and Cents int64.",
+      "NewLedger rejects empty account names and negative balances, and copies the input map. Nil input creates an empty ledger.",
+      "Apply validates and applies transfers in order against tentative balances. Both accounts must exist, From must differ from To, Cents must be positive, the sender must have enough funds and the recipient balance must not overflow int64.",
+      "If any transfer fails, roll back the whole batch. Empty batches succeed. Later transfers may spend funds received earlier in the same batch.",
+      "Snapshot returns an independent copy. All methods must be safe concurrently and each Apply batch must be atomic relative to other operations."
+    ],
+    "docs": [
+      {
+        "title": "Synchronization",
+        "url": "https://pkg.go.dev/sync"
+      },
+      {
+        "title": "Integer limits",
+        "url": "https://pkg.go.dev/math"
+      },
+      {
+        "title": "Errors",
+        "url": "https://pkg.go.dev/errors"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.go"
+    ],
+    "checks": [
+      "TestBatchTransfers",
+      "TestRollbackAndValidation",
+      "TestLedgerCopies",
+      "TestConcurrentLedger"
+    ]
+  }
+]

@@ -1,0 +1,130 @@
+[
+  {
+    "id": "rails-01-signup",
+    "track": "rails",
+    "runner": "rails",
+    "entry": "app/models/signup_form.rb",
+    "title": "Signup form object",
+    "level": "01 · Active Model",
+    "summary": "Validate a signup form without creating database records.",
+    "skills": [
+      "ActiveModel::Model",
+      "validations",
+      "errors",
+      "form objects"
+    ],
+    "requirements": [
+      "Complete SignupForm using ActiveModel::Model and attributes name, email, age, terms. Construct it using keyword/hash attributes and expose standard valid? and errors behavior.",
+      "name must be present (blank whitespace is invalid). email must match the deliberately small rule: exactly one @, non-empty text on each side, and no whitespace anywhere. A dot is not required.",
+      "age must be a numerical integer of at least 18. Numeric strings such as \"18\" are accepted; nil, non-numeric text and decimals are rejected.",
+      "Only boolean true and string \"1\" are accepted for terms. nil, false, \"0\", and other values are invalid.",
+      "Invalid attributes must have entries on their own errors keys. After correcting values, valid? must recompute and clear previous errors. This form is never persisted and uses no database."
+    ],
+    "docs": [
+      {
+        "title": "Active Model basics",
+        "url": "https://guides.rubyonrails.org/active_model_basics.html"
+      },
+      {
+        "title": "Rails validations",
+        "url": "https://guides.rubyonrails.org/active_record_validations.html"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.rb"
+    ],
+    "checks": [
+      "test_valid_form_and_model_contract",
+      "test_name_presence",
+      "test_email_contract",
+      "test_integer_adult_age",
+      "test_terms_acceptance",
+      "test_errors_recomputed"
+    ]
+  },
+  {
+    "id": "rails-02-catalog",
+    "track": "rails",
+    "runner": "rails",
+    "entry": "app/models/book.rb",
+    "title": "Bookshop catalogue scopes",
+    "level": "02 · Active Record",
+    "summary": "Query a small bookshop catalogue through composable database relations.",
+    "skills": [
+      "ActiveRecord",
+      "SQLite",
+      "scopes",
+      "ordering"
+    ],
+    "requirements": [
+      "Complete Book < ActiveRecord::Base. The test database has title:string, price_cents:integer, stock:integer, published:boolean.",
+      "Book.available returns an ActiveRecord::Relation containing published books with stock strictly greater than zero, ordered by price_cents ascending then id ascending.",
+      "Book.priced_between(minimum, maximum) returns a relation including both price boundaries. Negative minimum, maximum below minimum, or non-Integer bounds raise ArgumentError.",
+      "Both query methods must compose with each other and with additional where clauses without discarding existing filters. Do not load all books into Ruby arrays.",
+      "Queries must not modify any database records. An empty result remains a relation and supports count and pluck."
+    ],
+    "docs": [
+      {
+        "title": "Active Record querying",
+        "url": "https://guides.rubyonrails.org/active_record_querying.html"
+      },
+      {
+        "title": "Active Record basics",
+        "url": "https://guides.rubyonrails.org/active_record_basics.html"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.rb"
+    ],
+    "checks": [
+      "test_available_order_and_filter",
+      "test_inclusive_price_bounds",
+      "test_composable_relations",
+      "test_invalid_bounds",
+      "test_empty_relation_and_no_writes"
+    ]
+  },
+  {
+    "id": "rails-03-quotes",
+    "track": "rails",
+    "runner": "rails",
+    "entry": "app/controllers/shipping_quotes_controller.rb",
+    "title": "Shipping quote API",
+    "level": "03 · Action Controller",
+    "summary": "Expose a predictable JSON shipping endpoint with Rails request handling.",
+    "skills": [
+      "ActionController::API",
+      "parameters",
+      "JSON",
+      "HTTP status"
+    ],
+    "requirements": [
+      "Complete ShippingQuotesController < ActionController::API with a create action. Tests dispatch real JSON HTTP POST requests to the action through Rack.",
+      "Request body must have a quote object containing weight_grams and zone. Permit only these two input fields; ignore extra keys. weight_grams must be an Integer from 1 through 20000. zone must be exactly \"local\" or \"international\".",
+      "For valid input return status 200 and JSON with exactly cents and currency. currency is \"EUR\". cents is 300 for local or 900 for international, plus 100 for each started 1000 grams.",
+      "Missing or non-object quote returns status 400 with exactly {\"error\":\"quote_required\"}. An object with invalid fields returns status 422 with exactly {\"error\":\"invalid_quote\"}.",
+      "Use Rails parameter and JSON rendering facilities. Do not start a listener, make external requests, or persist quotes. Return JSON content type for success and errors."
+    ],
+    "docs": [
+      {
+        "title": "Action Controller overview",
+        "url": "https://guides.rubyonrails.org/action_controller_overview.html"
+      },
+      {
+        "title": "Rails API applications",
+        "url": "https://guides.rubyonrails.org/api_app.html"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.rb"
+    ],
+    "checks": [
+      "test_local_quote",
+      "test_weight_rounding_and_zones",
+      "test_missing_quote_object",
+      "test_invalid_weight",
+      "test_invalid_zone",
+      "test_extra_fields_ignored"
+    ]
+  }
+]

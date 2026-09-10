@@ -1,0 +1,8 @@
+{
+  "name": "js-01-expenses",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-reporter=spec"
+  }
+}

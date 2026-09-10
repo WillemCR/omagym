@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+gem 'rails', '8.1.3.1'
+gem 'sqlite3', '2.9.6'
+gem 'minitest', '6.0.6'
+gem 'rack-test', '2.2.0'
+gem 'json', '~> 2.18'
+gem 'csv', '3.3.6'

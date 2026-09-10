@@ -1,0 +1,145 @@
+[
+  {
+    "id": "js-01-expenses",
+    "track": "javascript",
+    "runner": "javascript",
+    "entry": "main.js",
+    "title": "Expense dashboard data",
+    "level": "01 · Modern collections",
+    "summary": "Prepare category totals for a personal spending dashboard.",
+    "skills": [
+      "ES modules",
+      "Map",
+      "array transformations",
+      "immutability"
+    ],
+    "requirements": [
+      "Export summarizeExpenses(records). Each record has category (string) and cents (a non-negative safe integer). Additional fields are ignored.",
+      "Trim category whitespace, keep case, and combine matching categories. Empty categories, non-string categories, invalid cents, non-object records, or non-array input throw TypeError.",
+      "Return an array of { category, cents, count } sorted by cents descending. Break ties by category ascending using JavaScript string < comparison (not locale-specific sorting).",
+      "Throw RangeError if any combined category total exceeds Number.MAX_SAFE_INTEGER. Empty input returns []. Do not mutate the input array or its records."
+    ],
+    "docs": [
+      {
+        "title": "Map",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map"
+      },
+      {
+        "title": "Array",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array"
+      },
+      {
+        "title": "Safe integers",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger"
+      }
+    ],
+    "testFiles": [
+      "package.json",
+      "challenge.test.js"
+    ],
+    "checks": [
+      "empty_records",
+      "group_and_sort",
+      "safe_keys_and_case",
+      "immutable_input",
+      "invalid_records",
+      "total_overflow"
+    ]
+  },
+  {
+    "id": "js-02-retry",
+    "track": "javascript",
+    "runner": "javascript",
+    "entry": "main.js",
+    "title": "Resilient task runner",
+    "level": "02 · Async control flow",
+    "summary": "Retry a flaky operation with a testable delay policy, without real network requests.",
+    "skills": [
+      "async/await",
+      "Promises",
+      "errors",
+      "dependency injection"
+    ],
+    "requirements": [
+      "Export async retry(operation, options = {}). Options: attempts defaults to 3, delayMs defaults to 100, sleep defaults to an async function that waits the requested milliseconds.",
+      "operation receives the 1-based attempt number. Return its first successful value, including undefined or other falsy values. Both synchronous throws and rejected promises count as failures.",
+      "After a failed attempt, if another attempt remains, await sleep(delayMs * failedAttemptNumber). Never sleep before the first attempt, after success, or after the last failure.",
+      "If all attempts fail, reject with the exact last thrown value (preserve object identity). If sleep rejects, propagate that exact reason immediately without another operation call.",
+      "Before calling operation or sleep, reject with TypeError if operation or sleep is not a function, attempts is not an integer from 1 through 100, or delayMs is not a finite number from 0 through 60000. Tests inject sleep so no wall-clock delays are needed."
+    ],
+    "docs": [
+      {
+        "title": "Async functions",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function"
+      },
+      {
+        "title": "Promise",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise"
+      },
+      {
+        "title": "Timers",
+        "url": "https://nodejs.org/api/timers.html"
+      }
+    ],
+    "testFiles": [
+      "package.json",
+      "challenge.test.js"
+    ],
+    "checks": [
+      "immediate_success",
+      "retries_and_waits_in_order",
+      "last_error_identity",
+      "default_attempts_and_delay",
+      "sleep_failure_stops",
+      "invalid_options_before_execution"
+    ]
+  },
+  {
+    "id": "js-03-events",
+    "track": "javascript",
+    "runner": "javascript",
+    "entry": "main.js",
+    "title": "Snapshot event bus",
+    "level": "03 · Closures & state",
+    "summary": "Build the event layer behind a tiny interactive application.",
+    "skills": [
+      "closures",
+      "Set",
+      "unsubscribe",
+      "reentrancy"
+    ],
+    "requirements": [
+      "Export createEventBus(), returning an object with on(event, listener), emit(event, payload), and listenerCount(event). Event names are strings and listeners are functions; reject invalid arguments with TypeError.",
+      "on returns an idempotent unsubscribe function. Each registration is independent, even when the same function is registered twice. listenerCount reports active registrations for that event.",
+      "emit calls listeners synchronously in registration order with the exact payload reference and returns the number called. No listeners returns zero.",
+      "Each emit takes a snapshot of registrations at its start. Changes made by a callback apply to later emits; removing a listener during dispatch does not skip it in the current snapshot.",
+      "Nested emits take a fresh snapshot of current registrations. If a listener throws, propagate the exact error and stop that emit; leave registrations intact. Separate bus instances must be isolated. Event names such as __proto__ are valid."
+    ],
+    "docs": [
+      {
+        "title": "Closures",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Closures"
+      },
+      {
+        "title": "Set",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set"
+      },
+      {
+        "title": "Map",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map"
+      }
+    ],
+    "testFiles": [
+      "package.json",
+      "challenge.test.js"
+    ],
+    "checks": [
+      "ordered_payload_and_isolation",
+      "independent_duplicate_subscriptions",
+      "snapshot_during_mutation",
+      "nested_emit_has_fresh_snapshot",
+      "exceptions_propagate_and_keep_listeners",
+      "special_names_and_validation"
+    ]
+  }
+]

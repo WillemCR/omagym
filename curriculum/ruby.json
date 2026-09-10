@@ -1,0 +1,139 @@
+[
+  {
+    "id": "ruby-01-tags",
+    "track": "ruby",
+    "runner": "ruby",
+    "entry": "main.rb",
+    "title": "Reading-list tag index",
+    "level": "01 · Collections",
+    "summary": "Turn article tags into a reusable browsing index.",
+    "skills": [
+      "Enumerable",
+      "Hash",
+      "strings",
+      "immutability"
+    ],
+    "requirements": [
+      "Implement tag_index(articles). Input is an Array of Hashes with symbol keys :id and :tags. IDs are unique positive Integers; tags is an Array of Strings. Invalid input raises ArgumentError.",
+      "Trim and lowercase each tag. Ignore blank tags. Within one article count a normalized tag only once.",
+      "Return a Hash mapping each normalized tag to its article IDs sorted ascending. A tag may include punctuation or Unicode; use Ruby downcase.",
+      "Empty input returns {}. Do not mutate the input hashes, arrays or strings."
+    ],
+    "docs": [
+      {
+        "title": "Enumerable",
+        "url": "https://docs.ruby-lang.org/en/3.4/Enumerable.html"
+      },
+      {
+        "title": "Hash",
+        "url": "https://docs.ruby-lang.org/en/3.4/Hash.html"
+      },
+      {
+        "title": "String",
+        "url": "https://docs.ruby-lang.org/en/3.4/String.html"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.rb"
+    ],
+    "checks": [
+      "test_empty",
+      "test_normalization_and_deduplication",
+      "test_unicode_and_punctuation",
+      "test_immutable_input",
+      "test_invalid_records"
+    ]
+  },
+  {
+    "id": "ruby-02-invoices",
+    "track": "ruby",
+    "runner": "ruby",
+    "entry": "main.rb",
+    "title": "CSV invoice importer",
+    "level": "02 · IO & errors",
+    "summary": "Import supplier invoice lines without floating-point money.",
+    "skills": [
+      "CSV",
+      "IO",
+      "integer parsing",
+      "exceptions"
+    ],
+    "requirements": [
+      "Implement invoice_totals(io), reading CSV from the supplied IO-like object. The exact header is customer,cents. Return a Hash of customer names to summed Integer cents.",
+      "Trim customer names; preserve case. Cents fields must contain one or more ASCII digits and nothing else (no signs, spaces, decimals or exponents). Leading zeroes are allowed.",
+      "Reject missing/wrong header, malformed CSV, wrong field count, empty names or invalid cents by raising ArgumentError. No partial result may be returned.",
+      "A header-only input returns {}. Quoted names containing commas are valid. Propagate IO read errors unchanged. Do not close the caller-owned IO."
+    ],
+    "docs": [
+      {
+        "title": "CSV",
+        "url": "https://ruby.github.io/csv/"
+      },
+      {
+        "title": "IO",
+        "url": "https://docs.ruby-lang.org/en/3.4/IO.html"
+      },
+      {
+        "title": "Exceptions",
+        "url": "https://docs.ruby-lang.org/en/3.4/Exception.html"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.rb"
+    ],
+    "checks": [
+      "test_header_only",
+      "test_grouped_integer_totals",
+      "test_quoted_names_and_large_amounts",
+      "test_invalid_csv_and_rows",
+      "test_io_is_not_closed",
+      "test_read_error_propagates"
+    ]
+  },
+  {
+    "id": "ruby-03-bookings",
+    "track": "ruby",
+    "runner": "ruby",
+    "entry": "main.rb",
+    "title": "Room booking calendar",
+    "level": "03 · Objects & state",
+    "summary": "Manage room bookings with conflict detection and safe cancellation.",
+    "skills": [
+      "classes",
+      "intervals",
+      "state",
+      "defensive copies"
+    ],
+    "requirements": [
+      "Implement BookingCalendar with book(id:, room:, start_at:, end_at:), cancel(id), and bookings(room). IDs and room names are non-empty Strings with no edge whitespace; times are Integers and start_at must be less than end_at.",
+      "book returns true on success. Duplicate IDs across all rooms, invalid arguments, or overlap in the same room raise ArgumentError and leave state unchanged.",
+      "Intervals are half-open: one booking ending exactly when another starts does not overlap. Different rooms can overlap.",
+      "cancel returns true when an ID existed and false otherwise. bookings(room) returns hashes with :id, :room, :start_at, :end_at, sorted by start_at then id. Unknown rooms return [].",
+      "All values passed into book and all returned hashes/strings must be isolated from internal state: caller mutations must not change saved bookings. Independent calendars must not share state."
+    ],
+    "docs": [
+      {
+        "title": "Classes",
+        "url": "https://docs.ruby-lang.org/en/3.4/syntax/modules_and_classes_rdoc.html"
+      },
+      {
+        "title": "Array",
+        "url": "https://docs.ruby-lang.org/en/3.4/Array.html"
+      },
+      {
+        "title": "Object copying",
+        "url": "https://docs.ruby-lang.org/en/3.4/Object.html"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.rb"
+    ],
+    "checks": [
+      "test_sorted_adjacent_bookings",
+      "test_overlap_is_atomic",
+      "test_duplicate_and_invalid_inputs",
+      "test_cancellation_and_isolation",
+      "test_defensive_copies"
+    ]
+  }
+]

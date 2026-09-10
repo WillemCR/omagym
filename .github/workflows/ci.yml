@@ -1,0 +1,45 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SHARP_IGNORE_GLOBAL_LIBVIPS: '1'
+      GEM_HOME: ${{ github.workspace }}/.runtime/gems
+      GEM_PATH: ${{ github.workspace }}/.runtime/gems
+      BUNDLE_FROZEN: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler: none
+      - name: Install locked dependencies
+        run: |
+          python3 -m venv .venv
+          npm ci
+          gem install bundler -v 4.0.20 --no-document --no-user-install --install-dir "$PWD/.runtime/gems" --bindir "$PWD/.runtime/gems/bin"
+          .runtime/gems/bin/bundle install
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --audit-level=high

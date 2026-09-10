@@ -1,0 +1,140 @@
+[
+  {
+    "id": "rust-01-sensors",
+    "track": "rust",
+    "runner": "rust",
+    "entry": "src/lib.rs",
+    "title": "Sensor report",
+    "level": "01 · Foundations",
+    "summary": "Turn noisy sensor readings into a compact, predictable report.",
+    "skills": [
+      "borrowing",
+      "slices",
+      "Option",
+      "structs"
+    ],
+    "requirements": [
+      "Implement summarize(readings: &[i32]) -> Option<Report>. Return None for an empty slice.",
+      "Report contains count: usize, min: i32, max: i32, total: i64 and rising: usize.",
+      "Count every reading and sum using i64 so multiple large i32 values cannot overflow.",
+      "rising counts adjacent pairs where the second reading is strictly greater than the first. Equal readings do not count. Do not change the input."
+    ],
+    "docs": [
+      {
+        "title": "Slices",
+        "url": "https://doc.rust-lang.org/std/primitive.slice.html"
+      },
+      {
+        "title": "Option",
+        "url": "https://doc.rust-lang.org/std/option/enum.Option.html"
+      }
+    ],
+    "testFiles": [
+      "Cargo.toml",
+      "tests/challenge.rs"
+    ],
+    "checks": [
+      "empty_has_no_report",
+      "single_reading",
+      "mixed_readings",
+      "large_total",
+      "descending_and_equal"
+    ]
+  },
+  {
+    "id": "rust-02-config",
+    "track": "rust",
+    "runner": "rust",
+    "entry": "src/lib.rs",
+    "title": "Tiny config reader",
+    "level": "02 · Parsing & errors",
+    "summary": "Parse a human-edited service configuration and point to the first broken line.",
+    "skills": [
+      "Result",
+      "enums",
+      "BTreeMap",
+      "string parsing"
+    ],
+    "requirements": [
+      "Implement parse_config(text: &str) -> Result<BTreeMap<String, String>, ConfigError>. ConfigError has line: usize and kind: ErrorKind (InvalidLine, InvalidKey, DuplicateKey).",
+      "Use 1-based physical line numbers. Trim each line; ignore blank lines and lines whose trimmed text starts with #. Inline # is ordinary value text.",
+      "Each remaining line must contain =. Split at its first =, then trim key and value. Empty values are valid and later = characters stay in the value.",
+      "Keys are case-sensitive and must begin with an ASCII letter or underscore; remaining characters may be ASCII letters, digits or underscores.",
+      "Reject the first bad line: missing = is InvalidLine, a malformed key is InvalidKey, and a previously seen valid key is DuplicateKey. Return no partial map."
+    ],
+    "docs": [
+      {
+        "title": "Result",
+        "url": "https://doc.rust-lang.org/std/result/enum.Result.html"
+      },
+      {
+        "title": "String slices",
+        "url": "https://doc.rust-lang.org/std/primitive.str.html"
+      },
+      {
+        "title": "BTreeMap",
+        "url": "https://doc.rust-lang.org/std/collections/struct.BTreeMap.html"
+      }
+    ],
+    "testFiles": [
+      "Cargo.toml",
+      "tests/challenge.rs"
+    ],
+    "checks": [
+      "blank_and_comments",
+      "trims_and_preserves_values",
+      "missing_separator_has_line",
+      "invalid_keys",
+      "duplicate_and_case_sensitivity",
+      "first_error_wins"
+    ]
+  },
+  {
+    "id": "rust-03-stock",
+    "track": "rust",
+    "runner": "rust",
+    "entry": "src/lib.rs",
+    "title": "Atomic stock ledger",
+    "level": "03 · State & transactions",
+    "summary": "Apply a delivery or order batch without leaving half-finished stock changes.",
+    "skills": [
+      "ownership",
+      "mutable borrowing",
+      "checked arithmetic",
+      "atomic updates"
+    ],
+    "requirements": [
+      "Implement apply_batch(stock: &mut BTreeMap<String, u32>, changes: &[Change]) -> Result<(), BatchError>. Change has sku: String and delta: i64. BatchError has index: usize and kind: ErrorKind (InvalidSku, Underflow, Overflow).",
+      "Process changes in input order. A missing SKU starts at zero; deltas can add or remove units. Values must stay within 0..=u32::MAX after each individual change.",
+      "A SKU is valid only when non-empty and has no leading or trailing whitespace. Preserve case and inner whitespace. Validate SKU before checking its amount.",
+      "Return the first failure with its zero-based change index. Negative stock is Underflow; stock above u32::MAX is Overflow, including extreme i64 deltas without panicking.",
+      "A failed batch must leave the original map exactly unchanged. On success commit all changes. Keep zero-valued entries, including a new SKU with delta zero. An empty batch succeeds unchanged."
+    ],
+    "docs": [
+      {
+        "title": "BTreeMap",
+        "url": "https://doc.rust-lang.org/std/collections/struct.BTreeMap.html"
+      },
+      {
+        "title": "Mutable references",
+        "url": "https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html"
+      },
+      {
+        "title": "Integer arithmetic",
+        "url": "https://doc.rust-lang.org/std/primitive.i64.html"
+      }
+    ],
+    "testFiles": [
+      "Cargo.toml",
+      "tests/challenge.rs"
+    ],
+    "checks": [
+      "successful_batch_is_ordered",
+      "underflow_rolls_back_everything",
+      "overflow_and_extreme_deltas",
+      "invalid_skus_are_atomic",
+      "zero_entries_and_case",
+      "empty_batch_is_noop"
+    ]
+  }
+]

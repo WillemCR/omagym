@@ -1,0 +1,593 @@
+[
+  {
+    "id": "react-01-counter",
+    "track": "react",
+    "runner": "browser",
+    "entry": "src/App.jsx",
+    "title": "Rep counter",
+    "level": "Foundation",
+    "summary": "Build a tiny workout counter with a configurable step and clear bounds.",
+    "skills": [
+      "state",
+      "events",
+      "controlled inputs"
+    ],
+    "requirements": [
+      "Show an output with accessible name Reps, initially 0. Provide buttons Add, Remove and Reset.",
+      "Provide a numeric input labelled Step, initially 1; Add and Remove change the count by that positive integer.",
+      "Never let the count fall below zero; disable Remove at zero. Reset returns the count to zero while preserving Step.",
+      "Blank, zero, negative or non-integer Step values disable Add and Remove until valid again."
+    ],
+    "docs": [
+      {
+        "title": "React: adding interactivity",
+        "url": "https://react.dev/learn/adding-interactivity"
+      },
+      {
+        "title": "React: updating arrays in state",
+        "url": "https://react.dev/learn/updating-arrays-in-state"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Counter changes reps and clamps at zero",
+      "Counter resets without losing its step",
+      "Counter rejects invalid steps and recovers"
+    ]
+  },
+  {
+    "id": "react-02-directory",
+    "track": "react",
+    "runner": "browser",
+    "entry": "src/App.jsx",
+    "title": "Language directory",
+    "level": "Practice",
+    "summary": "Make a searchable directory with derived results and an honest empty state.",
+    "skills": [
+      "derived state",
+      "filtering",
+      "lists"
+    ],
+    "requirements": [
+      "Display a list named Languages containing Rust, Go, JavaScript and Python in that order. Each list item shows its name and category: Rust and Go are Systems; JavaScript and Python are Scripting.",
+      "Provide Search (text input) and Category (select with All, Systems, Scripting; default All). Match names case-insensitively after trimming the query; combine both filters.",
+      "Show the visible result count in a status named Result count, formatted N results. Show No languages found when empty.",
+      "Provide Clear filters to restore all four entries and reset both controls."
+    ],
+    "docs": [
+      {
+        "title": "React: adding interactivity",
+        "url": "https://react.dev/learn/adding-interactivity"
+      },
+      {
+        "title": "React: updating arrays in state",
+        "url": "https://react.dev/learn/updating-arrays-in-state"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Directory filters names without case or whitespace surprises",
+      "Directory combines category and search",
+      "Directory clear restores input and original order"
+    ]
+  },
+  {
+    "id": "react-03-weekend-board",
+    "track": "react",
+    "runner": "browser",
+    "entry": "src/App.jsx",
+    "title": "Weekend board",
+    "level": "Weekend",
+    "summary": "Turn a blank board into a useful, persistent weekend checklist.",
+    "skills": [
+      "forms",
+      "immutable updates",
+      "local storage"
+    ],
+    "requirements": [
+      "Provide a Task input and Add task button. Trim submissions, reject blank text, append a task and clear the input. Start empty when storage is empty.",
+      "Each task is a list item in a list named Tasks, with a checkbox labelled by its task text and a Delete <task text> button. Duplicate text is allowed; task identities remain independent.",
+      "Show a status named Remaining with N remaining. Checkbox toggles update the count; deleting removes only the chosen task.",
+      "Persist tasks and completion under localStorage key omagym-weekend-tasks so reload restores them. A malformed value at that key must recover to an empty usable board."
+    ],
+    "docs": [
+      {
+        "title": "React: adding interactivity",
+        "url": "https://react.dev/learn/adding-interactivity"
+      },
+      {
+        "title": "React: updating arrays in state",
+        "url": "https://react.dev/learn/updating-arrays-in-state"
+      },
+      {
+        "title": "React: synchronizing with effects",
+        "url": "https://react.dev/learn/synchronizing-with-effects"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Board adds trimmed tasks and rejects blank input",
+      "Board duplicate tasks have independent identity",
+      "Board persists completion and recovers corrupt storage"
+    ]
+  },
+  {
+    "id": "vue-01-cart",
+    "track": "vue",
+    "runner": "browser",
+    "entry": "src/App.vue",
+    "title": "Trail snack cart",
+    "level": "Foundation",
+    "summary": "Practice reactive quantities and computed totals in a two-item cart.",
+    "skills": [
+      "ref",
+      "computed",
+      "input binding"
+    ],
+    "requirements": [
+      "Show numeric inputs labelled Apples quantity (unit price \u20ac1.50) and Nuts quantity (\u20ac2.25), both initially zero.",
+      "Allow integer quantities from 0 to 10 inclusive. Show a status named Total formatted \u20acN.NN and update it when either quantity changes.",
+      "Provide Checkout, disabled when the total is zero or either quantity is invalid (blank, non-integer, negative or above ten). Show Invalid quantity while invalid.",
+      "Clicking Checkout on a valid non-empty cart shows Order placed, resets both quantities to zero and resets the total."
+    ],
+    "docs": [
+      {
+        "title": "Vue: reactivity fundamentals",
+        "url": "https://vuejs.org/guide/essentials/reactivity-fundamentals.html"
+      },
+      {
+        "title": "Vue: form input bindings",
+        "url": "https://vuejs.org/guide/essentials/forms.html"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Cart computes decimal totals from both quantities",
+      "Cart rejects invalid quantities and recovers",
+      "Cart checkout confirms and clears quantities"
+    ]
+  },
+  {
+    "id": "vue-02-reading-tabs",
+    "track": "vue",
+    "runner": "browser",
+    "entry": "src/App.vue",
+    "title": "Reading tabs",
+    "level": "Practice",
+    "summary": "Build keyboard-operable tabs with useful reading content.",
+    "skills": [
+      "conditional rendering",
+      "events",
+      "accessibility"
+    ],
+    "requirements": [
+      "Create a tablist named Reading guide, with tabs Overview, Examples and Resources in that order. Overview starts selected; exactly one tab is selected and keyboard tabbable.",
+      "The visible tabpanel has the selected tab as its accessible name. Its text is Welcome to Vue, Practice makes progress, or Read the official guide respectively.",
+      "Clicking a tab selects it. ArrowRight and ArrowLeft wrap through tabs, selecting and focusing the next tab. Home selects and focuses Overview; End selects and focuses Resources.",
+      "Only the active panel is visible, and aria-selected plus tabindex stay synchronized with keyboard and pointer interaction."
+    ],
+    "docs": [
+      {
+        "title": "Vue: reactivity fundamentals",
+        "url": "https://vuejs.org/guide/essentials/reactivity-fundamentals.html"
+      },
+      {
+        "title": "Vue: form input bindings",
+        "url": "https://vuejs.org/guide/essentials/forms.html"
+      },
+      {
+        "title": "WAI: tabs pattern",
+        "url": "https://www.w3.org/WAI/ARIA/apg/patterns/tabs/"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Tabs start with one selected panel",
+      "Tabs respond to clicks and expose selection",
+      "Tabs keyboard wraps and supports home and end"
+    ]
+  },
+  {
+    "id": "vue-03-budget",
+    "track": "vue",
+    "runner": "browser",
+    "entry": "src/App.vue",
+    "title": "Weekend budget",
+    "level": "Weekend",
+    "summary": "Track a weekend budget with validation, removal and live category totals.",
+    "skills": [
+      "forms",
+      "computed",
+      "reactive arrays"
+    ],
+    "requirements": [
+      "Provide Description input, Amount numeric input, Category select (Food, Travel, Fun; default Food) and Add expense button. Reject blank descriptions and non-finite or non-positive amounts.",
+      "On valid submission trim the description, add an expense to a list named Expenses and clear Description and Amount. Show each amount with two decimal places.",
+      "Each row has Remove <description> button. Duplicate descriptions are independent expenses. A status named Total shows the sum as \u20acN.NN.",
+      "Provide a Filter category select (All, Food, Travel, Fun; default All). The list is filtered, but Total always includes all expenses. A status named Visible total shows the filtered sum as \u20acN.NN. Empty visible lists show No expenses."
+    ],
+    "docs": [
+      {
+        "title": "Vue: reactivity fundamentals",
+        "url": "https://vuejs.org/guide/essentials/reactivity-fundamentals.html"
+      },
+      {
+        "title": "Vue: form input bindings",
+        "url": "https://vuejs.org/guide/essentials/forms.html"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Budget accepts trimmed expenses and rejects invalid amounts",
+      "Budget filters rows but retains overall total",
+      "Budget removes only the selected duplicate"
+    ]
+  },
+  {
+    "id": "html-01-registration",
+    "track": "html",
+    "runner": "browser",
+    "entry": "index.html",
+    "title": "Workshop registration",
+    "level": "Foundation",
+    "summary": "Use native HTML controls to make an accessible registration form without JavaScript.",
+    "skills": [
+      "semantic forms",
+      "labels",
+      "native validation"
+    ],
+    "requirements": [
+      "Create one form named Workshop registration, with required Name (text), Email (email), and Tickets (number, integer from 1 to 4, initially 1). Give controls names name, email, tickets.",
+      "Add a required checkbox labelled Accept terms with name terms, and a Register submit button. The browser must reject empty fields, malformed email, unchecked terms and out-of-range or fractional tickets.",
+      "Add a Track select with name track and options Go and Rust (values go and rust, default go). All labels must activate their controls.",
+      "Use native HTML validation. A valid filled form must pass checkValidity and yield its entered values via FormData; no submission backend is required."
+    ],
+    "docs": [
+      {
+        "title": "MDN: HTML elements",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements"
+      },
+      {
+        "title": "MDN: constraint validation",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Constraint_validation"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Registration exposes native labelled fields",
+      "Registration validates email tickets and terms",
+      "Registration produces useful form data"
+    ]
+  },
+  {
+    "id": "html-02-field-notes",
+    "track": "html",
+    "runner": "browser",
+    "entry": "index.html",
+    "title": "Field notes article",
+    "level": "Foundation",
+    "summary": "Publish a small semantic article that works with landmarks, headings and table navigation.",
+    "skills": [
+      "landmarks",
+      "headings",
+      "tables",
+      "document structure"
+    ],
+    "requirements": [
+      "Create a header (banner) containing navigation named Main with links Notes \u2192 #notes and Schedule \u2192 #schedule; a main element id notes; and a footer (contentinfo).",
+      "Main contains one article, one h1 named Learning in public, and h2 headings Notes and Schedule in that order. Give the Schedule section id schedule so the navigation link reaches it.",
+      "Inside the article, show a time element with datetime 2026-09-12 and visible date 12 September 2026. Include a figure containing an img with meaningful alt Desk with a notebook (a local inline SVG data URL is fine) and figcaption Weekend setup.",
+      "Provide a table with caption Weekend schedule, column headers Day and Focus (scope col), row headers Saturday and Sunday (scope row), and their data cells Build and Reflect respectively."
+    ],
+    "docs": [
+      {
+        "title": "MDN: HTML elements",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements"
+      },
+      {
+        "title": "MDN: constraint validation",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Constraint_validation"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Article exposes landmarks and a logical heading hierarchy",
+      "Article navigation and media carry useful semantics",
+      "Article table supports header relationships"
+    ]
+  },
+  {
+    "id": "html-03-faq",
+    "track": "html",
+    "runner": "browser",
+    "entry": "index.html",
+    "title": "Native FAQ",
+    "level": "Foundation",
+    "summary": "Create an interactive FAQ using built-in browser behavior and no JavaScript.",
+    "skills": [
+      "details",
+      "summary",
+      "keyboard interaction"
+    ],
+    "requirements": [
+      "Create one main with h1 Weekend FAQ and three initially closed details elements.",
+      "Each details element has a summary: What should I bring?, Can I join remotely?, and Is there a deadline? in that order. Answers are Bring a laptop and curiosity., Yes, all exercises run locally., and Finish at your own pace. respectively.",
+      "Pointer and keyboard interaction must open and close each answer using native details/summary behavior. Multiple answers may remain open independently.",
+      "Use no JavaScript; keep answers inside their corresponding details and ensure they are hidden while closed."
+    ],
+    "docs": [
+      {
+        "title": "MDN: HTML elements",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements"
+      },
+      {
+        "title": "MDN: constraint validation",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Constraint_validation"
+      },
+      {
+        "title": "MDN: details element",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "FAQ begins with all answers collapsed",
+      "FAQ pointer toggles independently",
+      "FAQ supports native keyboard activation"
+    ]
+  },
+  {
+    "id": "html-css-01-gallery",
+    "track": "html-css",
+    "runner": "browser",
+    "entry": "index.html",
+    "title": "Responsive project gallery",
+    "level": "Foundation",
+    "summary": "Build a responsive card layout that can survive both phone and desktop widths.",
+    "skills": [
+      "grid",
+      "responsive layout",
+      "box model"
+    ],
+    "requirements": [
+      "Keep the three .card articles inside .gallery and their titles Parser, Tracker and Journal. Edit styles.css and HTML as needed.",
+      "At a 390px viewport, cards form one full-width column; at 900px and 1200px they form three equal-width columns in one row.",
+      "Use a 24px gap horizontally and vertically. Each card has 24px padding, 12px border radius and a visible non-transparent background.",
+      "The main content is centered, with maximum width 1100px and at least 16px outer space on each side. No horizontal page overflow at 390px or 1200px."
+    ],
+    "docs": [
+      {
+        "title": "MDN: CSS grid layout",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout"
+      },
+      {
+        "title": "MDN: media queries",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Gallery stacks comfortably on phones",
+      "Gallery uses three equal desktop columns",
+      "Gallery cards and container meet spacing contract"
+    ]
+  },
+  {
+    "id": "html-css-02-navigation",
+    "track": "html-css",
+    "runner": "browser",
+    "entry": "index.html",
+    "title": "Accessible study navigation",
+    "level": "Practice",
+    "summary": "Style a keyboard-friendly navigation bar that rearranges on small screens.",
+    "skills": [
+      "flexbox",
+      "focus visible",
+      "responsive design"
+    ],
+    "requirements": [
+      "Keep the Main navigation and its three links, with Lessons marked aria-current page. Keep Skip to content targeting the focusable main id content.",
+      "At 390px, navigation links stack vertically. At 1000px, they sit in one horizontal row. Use 16px gaps and at least 12px padding on each navigation link.",
+      "The current link has background rgb(30, 64, 175), white text and 8px radius. Keyboard-focused links have a visible solid outline at least 2px wide.",
+      "The skip link is out of view until keyboard-focused, then visible inside the viewport. Activating it moves keyboard focus to main. No horizontal overflow on mobile."
+    ],
+    "docs": [
+      {
+        "title": "MDN: CSS grid layout",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout"
+      },
+      {
+        "title": "MDN: media queries",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries"
+      },
+      {
+        "title": "MDN: focus-visible",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Navigation rearranges between phone and desktop",
+      "Navigation highlights current and focused links",
+      "Navigation skip link appears and transfers focus"
+    ]
+  },
+  {
+    "id": "html-css-03-pricing",
+    "track": "html-css",
+    "runner": "browser",
+    "entry": "index.html",
+    "title": "Equal-height pricing cards",
+    "level": "Weekend",
+    "summary": "Use layout primitives to align calls to action without hard-coded card heights.",
+    "skills": [
+      "flex alignment",
+      "intrinsic sizing",
+      "reduced motion"
+    ],
+    "requirements": [
+      "Preserve the two .plan articles in .plans. At 1000px viewport show two equal-width, equal-height cards; at 390px stack them without page overflow.",
+      "Place each Choose link at the bottom of its card; their bottom edges align on desktop despite different content lengths. Cards must grow if content grows.",
+      "Each card has 24px padding; Club has a solid 3px border rgb(30, 64, 175). Choose links are block-level clickable areas at least 44px tall.",
+      "Apply a transform transition to Choose links with a normal duration greater than zero; under prefers-reduced-motion reduce, transition duration becomes 0s."
+    ],
+    "docs": [
+      {
+        "title": "MDN: CSS grid layout",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout"
+      },
+      {
+        "title": "MDN: media queries",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries"
+      },
+      {
+        "title": "MDN: prefers-reduced-motion",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Pricing aligns equal cards and bottom actions",
+      "Pricing stacks and grows with content",
+      "Pricing emphasizes Club and respects reduced motion"
+    ]
+  },
+  {
+    "id": "tailwind-01-profile",
+    "track": "tailwind",
+    "runner": "browser",
+    "entry": "index.html",
+    "title": "Utility profile card",
+    "level": "Foundation",
+    "summary": "Build a compact profile card using Tailwind utility classes.",
+    "skills": [
+      "utility classes",
+      "spacing",
+      "typography"
+    ],
+    "requirements": [
+      "Use Tailwind classes in index.html; styles.css already imports Tailwind. Preserve article.profile and .avatar so measurements can find them.",
+      "Center the card horizontally and vertically inside a main that is at least the viewport height. Card width is 320px, with 24px padding, 16px corner radius and a visible box shadow.",
+      "The avatar is a 64px circle. The h1 uses 24px font size and at least 600 weight. The View projects link is a block, fills the card content width and is at least 44px tall.",
+      "At viewport widths 390px and 1200px the card stays inside the viewport with no horizontal overflow. Choose your own colors."
+    ],
+    "docs": [
+      {
+        "title": "Tailwind: responsive design",
+        "url": "https://tailwindcss.com/docs/responsive-design"
+      },
+      {
+        "title": "Tailwind: hover, focus and other states",
+        "url": "https://tailwindcss.com/docs/hover-focus-and-other-states"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Utility card is centered at phone and desktop sizes",
+      "Utility card exposes spacing shape and type hierarchy",
+      "Utility card action has a generous full-width target"
+    ]
+  },
+  {
+    "id": "tailwind-02-actions",
+    "track": "tailwind",
+    "runner": "browser",
+    "entry": "index.html",
+    "title": "Action states",
+    "level": "Practice",
+    "summary": "Practice utility variants for pointer, keyboard and disabled states.",
+    "skills": [
+      "hover variants",
+      "focus-visible",
+      "disabled variants"
+    ],
+    "requirements": [
+      "Keep buttons #save (Save progress, enabled) and #locked (Locked, disabled). Style through Tailwind utilities.",
+      "Both buttons have at least 44px height, 16px horizontal padding and 8px border radius. Save progress has a non-transparent background which changes on hover.",
+      "Keyboard focus on Save progress has a visible solid outline at least 2px wide with at least 2px offset. Locked is excluded from tab order by native disabled semantics, has opacity 0.5 and cursor not-allowed.",
+      "Save progress background changes use a nonzero transition normally. Under reduced motion, transition duration is zero. Moving the pointer away restores the original background."
+    ],
+    "docs": [
+      {
+        "title": "Tailwind: responsive design",
+        "url": "https://tailwindcss.com/docs/responsive-design"
+      },
+      {
+        "title": "Tailwind: hover, focus and other states",
+        "url": "https://tailwindcss.com/docs/hover-focus-and-other-states"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Utility actions provide practical targets and disabled styling",
+      "Utility action hover changes and restores its background",
+      "Utility action keyboard outline and motion preferences work"
+    ]
+  },
+  {
+    "id": "tailwind-03-workspace",
+    "track": "tailwind",
+    "runner": "browser",
+    "entry": "index.html",
+    "title": "Responsive weekend workspace",
+    "level": "Weekend",
+    "summary": "Assemble a useful responsive dashboard shell with Tailwind utilities.",
+    "skills": [
+      "responsive variants",
+      "grid",
+      "layout composition"
+    ],
+    "requirements": [
+      "Keep .shell containing aside and main, Workspace navigation, and .stats containing three article cards. Style with Tailwind utilities.",
+      "At 1200px, aside is 240px wide to the left of main, both aligned at the top; main fills the remaining shell width. At 390px, aside is above main and both fill the available width.",
+      "Use 24px padding in main. Statistics cards form three equal columns with 16px gaps on desktop and one column with 16px gaps on mobile.",
+      "The shell has at least viewport height, each stats card has 16px padding and 8px radius, and neither layout causes horizontal page overflow."
+    ],
+    "docs": [
+      {
+        "title": "Tailwind: responsive design",
+        "url": "https://tailwindcss.com/docs/responsive-design"
+      },
+      {
+        "title": "Tailwind: hover, focus and other states",
+        "url": "https://tailwindcss.com/docs/hover-focus-and-other-states"
+      }
+    ],
+    "testFiles": [
+      "challenge.spec.js"
+    ],
+    "checks": [
+      "Utility workspace has a fixed desktop sidebar and flexible main",
+      "Utility workspace stacks on mobile without overflow",
+      "Utility workspace statistics have consistent desktop spacing"
+    ]
+  }
+]

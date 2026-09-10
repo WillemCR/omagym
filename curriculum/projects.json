@@ -1,0 +1,160 @@
+[
+  {
+    "id": "01-wordstats",
+    "title": "Word counter",
+    "level": "01 \u00b7 Foundations",
+    "summary": "Build the core of a text analyzer. Turn a string into useful word statistics.",
+    "skills": [
+      "strings",
+      "maps",
+      "structs"
+    ],
+    "requirements": [
+      "Implement Analyze(text string) Stats in package wordstats.",
+      "Words are separated by Unicode whitespace. Ignore case when counting unique words; preserve punctuation as part of each word.",
+      "Return Words (total words), Unique (distinct normalized words), and Longest (normalized word with most Unicode characters). Break length ties by first appearance.",
+      "Empty or whitespace-only input returns zero counts and an empty Longest."
+    ],
+    "docs": [
+      {
+        "title": "Strings",
+        "url": "https://pkg.go.dev/strings"
+      },
+      {
+        "title": "Maps",
+        "url": "https://go.dev/tour/moretypes/19"
+      },
+      {
+        "title": "UTF-8",
+        "url": "https://pkg.go.dev/unicode/utf8"
+      }
+    ]
+  },
+  {
+    "id": "02-ledger",
+    "title": "Expense ledger",
+    "level": "02 \u00b7 Data & errors",
+    "summary": "Read expense records and report how much was spent in each category.",
+    "skills": [
+      "io.Reader",
+      "CSV",
+      "errors"
+    ],
+    "requirements": [
+      "Implement Totals(r io.Reader) (map[string]int, error) in package ledger.",
+      "Input is CSV with the exact header category,cents. Trim category whitespace. Cents must be a non-negative base-10 integer.",
+      "Sum cents per category. Empty categories, wrong headers, missing fields, non-integers and negative amounts return an error and nil totals.",
+      "A header-only file returns an empty map and no error. Propagate reader errors. No floating-point currency."
+    ],
+    "docs": [
+      {
+        "title": "CSV reader",
+        "url": "https://pkg.go.dev/encoding/csv"
+      },
+      {
+        "title": "Integer conversion",
+        "url": "https://pkg.go.dev/strconv"
+      },
+      {
+        "title": "Readers",
+        "url": "https://pkg.go.dev/io"
+      }
+    ]
+  },
+  {
+    "id": "03-taskstore",
+    "title": "Task notebook",
+    "level": "03 \u00b7 Files & state",
+    "summary": "Create a small task store that survives a restart.",
+    "skills": [
+      "JSON",
+      "files",
+      "validation"
+    ],
+    "requirements": [
+      "Implement Save(path string, tasks []Task) error and Load(path string) ([]Task, error) in package taskstore.",
+      "Task has ID int, Title string, Done bool, with JSON keys id, title, done. Save writes a JSON array, preserving input order and values.",
+      "Both Save and Load reject IDs <= 0, duplicate IDs, and whitespace-only titles. Return an error before writing invalid tasks.",
+      "Load returns an empty slice without error when the file does not exist. Reject malformed JSON and trailing JSON values; propagate other I/O errors.",
+      "Save(nil) writes an empty JSON array. You need not create missing parent directories."
+    ],
+    "docs": [
+      {
+        "title": "JSON",
+        "url": "https://pkg.go.dev/encoding/json"
+      },
+      {
+        "title": "Files",
+        "url": "https://pkg.go.dev/os"
+      },
+      {
+        "title": "Errors",
+        "url": "https://pkg.go.dev/errors"
+      }
+    ]
+  },
+  {
+    "id": "04-keyserver",
+    "title": "Pocket API",
+    "level": "04 \u00b7 HTTP services",
+    "summary": "Build a tiny, in-memory key/value service with a clean HTTP contract.",
+    "skills": [
+      "HTTP",
+      "handlers",
+      "mutexes"
+    ],
+    "requirements": [
+      "Implement NewHandler() http.Handler in package keyserver. Each handler has its own empty store.",
+      "PUT /kv/{key} stores the raw request body and responds 204. GET returns the stored body and 200, or 404 if missing.",
+      "DELETE removes an existing key and responds 204; missing keys return 404. Other methods on valid paths return 405.",
+      "Only paths with exactly one nonempty key segment after /kv/ are valid; other paths return 404.",
+      "The handler must safely support simultaneous requests. Tests use in-process requests, without exposing a port."
+    ],
+    "docs": [
+      {
+        "title": "HTTP handlers",
+        "url": "https://pkg.go.dev/net/http"
+      },
+      {
+        "title": "HTTP testing",
+        "url": "https://pkg.go.dev/net/http/httptest"
+      },
+      {
+        "title": "Synchronization",
+        "url": "https://pkg.go.dev/sync"
+      }
+    ]
+  },
+  {
+    "id": "05-linkcheck",
+    "title": "Link patrol",
+    "level": "05 \u00b7 Concurrency",
+    "summary": "Check a batch of URLs with bounded parallelism and cancellation.",
+    "skills": [
+      "goroutines",
+      "context",
+      "interfaces"
+    ],
+    "requirements": [
+      "Implement Check(ctx context.Context, urls []string, workers int, probe Probe) ([]Result, error) in package linkcheck.",
+      "Probe is func(context.Context, string) (int, error). Call it once per URL using at most workers concurrent calls; workers must be positive.",
+      "Return one Result per URL in the original input order, including duplicates. Record probe errors in Result.Err and keep processing other URLs.",
+      "Use parallelism when workers > 1. Propagate context cancellation as the top-level error. Assume probe honors its context.",
+      "Empty input returns an empty result slice without error for valid workers. Tests inject probes; no internet access is needed."
+    ],
+    "docs": [
+      {
+        "title": "Goroutines",
+        "url": "https://go.dev/tour/concurrency/1"
+      },
+      {
+        "title": "Channels",
+        "url": "https://go.dev/tour/concurrency/2"
+      },
+      {
+        "title": "Context",
+        "url": "https://pkg.go.dev/context"
+      }
+    ]
+  }
+]

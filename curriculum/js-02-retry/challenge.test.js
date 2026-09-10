@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { retry } from './main.js';
+test('immediate_success', async () => { for(const value of [0,false,undefined,'ok']) { const seen=[]; assert.equal(await retry(n=>{seen.push(n);return value;},{sleep:()=>assert.fail('unexpected sleep')}),value); assert.deepEqual(seen,[1]); } });
+test('retries_and_waits_in_order', async () => { const events=[]; const result=await retry(async n=>{events.push(`try${n}`); if(n<3) throw new Error('busy'); return 42;},{attempts:4,delayMs:7,sleep:async ms=>{events.push(`sleep${ms}`);await Promise.resolve();events.push('awake');}}); assert.equal(result,42); assert.deepEqual(events,['try1','sleep7','awake','try2','sleep14','awake','try3']); });
+test('last_error_identity', async () => { const errors=[new Error('first'),new Error('last')], sleeps=[]; await assert.rejects(retry(n=>{throw errors[n-1];},{attempts:2,delayMs:0,sleep:async n=>sleeps.push(n)}),e=>e===errors[1]); assert.deepEqual(sleeps,[0]); });
+test('default_attempts_and_delay', async () => { const tries=[],waits=[]; await assert.rejects(retry(n=>{tries.push(n);throw new Error('no');},{sleep:async ms=>waits.push(ms)}),/no/); assert.deepEqual(tries,[1,2,3]); assert.deepEqual(waits,[100,200]); });
+test('sleep_failure_stops', async () => { const reason=new Error('cancelled');let count=0;await assert.rejects(retry(()=>{count++;throw new Error('busy');},{sleep:async()=>{throw reason;}}),e=>e===reason);assert.equal(count,1); });
+test('invalid_options_before_execution', async () => { let calls=0; const op=()=>{calls++;}; for(const options of [{attempts:0},{attempts:101},{attempts:1.5},{attempts:'3'},{delayMs:-1},{delayMs:NaN},{delayMs:Infinity},{delayMs:60001},{sleep:3}]) await assert.rejects(retry(op,options),TypeError); await assert.rejects(retry(null),TypeError);assert.equal(calls,0); });

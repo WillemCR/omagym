@@ -1,0 +1,6 @@
+#!/bin/sh
+# Resolve the installed symlink without relying on the caller's working directory.
+omagym_script=$(readlink -f -- "$0")
+omagym_root=$(dirname -- "$(dirname -- "$omagym_script")")
+export PYTHONPATH="$omagym_root${PYTHONPATH:+:$PYTHONPATH}"
+exec "$omagym_root/.venv/bin/python" -m gym.cli "$@"
