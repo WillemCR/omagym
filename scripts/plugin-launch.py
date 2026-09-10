@@ -54,6 +54,25 @@ def read_json(path):
     return json.loads(path.read_text()) if path.exists() else None
 
 
+def node_runtime():
+    launcher = shutil.which('node')
+    if not launcher:
+        raise RuntimeError('Node.js is not installed or is not on PATH.')
+    # Runtime-manager shims depend on argv[0]. Resolving a mise "node" symlink
+    # before launching it turns a Node invocation into a mise CLI invocation.
+    info = json.loads(run([launcher, '-p',
+                          'JSON.stringify({executable:process.execPath,version:process.versions.node})'],
+                         capture=True))
+    if not isinstance(info, dict) or not isinstance(info.get('executable'), str) or not isinstance(info.get('version'), str):
+        raise RuntimeError('Node.js did not report a valid runtime path and version.')
+    executable = Path(info['executable'])
+    if not executable.is_absolute() or not executable.is_file() or not os.access(executable, os.X_OK):
+        raise RuntimeError('Node.js reported an unavailable runtime executable.')
+    # The actual executable, unlike the manager shim, can be mounted in the
+    # exercise sandbox and supplies the matching npm through its bin directory.
+    return executable.resolve(), info['version']
+
+
 def prerequisites(allow_packages):
     if sys.version_info < (3, 11):
         raise RuntimeError('Python 3.11 or newer is required.')
@@ -73,8 +92,7 @@ def prerequisites(allow_packages):
         if input('Install these missing packages with Omarchy? [y/N] ').strip().lower() not in ('y', 'yes'):
             raise RuntimeError('Setup cancelled; system packages were not installed.')
         run(['omarchy', 'pkg', 'add', *missing])
-    node = Path(shutil.which('node') or '').resolve()
-    version = run([node, '-p', 'process.versions.node'], capture=True)
+    node, version = node_runtime()
     # Node 24+ supports all test-reporter options used by this release.
     if int(version.split('.')[0]) < 24:
         raise RuntimeError('Node 24+ is required for plugin setup. The tested version is in .node-version; select it with your runtime manager and retry.')

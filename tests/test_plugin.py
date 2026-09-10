@@ -92,6 +92,29 @@ class PluginTests(unittest.TestCase):
         with patch.dict(os.environ, {'XDG_DATA_HOME': 'relative'}):
             self.assertEqual(plugin.data_directory(), Path.home()/'.local/share/omagym')
 
+    def test_node_symlink_shim_keeps_its_dispatch_name_and_reports_real_runtime(self):
+        manager = self.root/'runtime-manager'
+        binary = self.root/'installed/bin/node'; binary.parent.mkdir(parents=True)
+        binary.write_text('#!/bin/sh\nexit 0\n'); binary.chmod(0o755)
+        info = json.dumps({'executable': str(binary), 'version': '25.2.1'})
+        manager.write_text('#!/usr/bin/env python3\nimport sys\nfrom pathlib import Path\n'
+                           'if Path(sys.argv[0]).name != "node":\n'
+                           '    sys.exit("error: unexpected argument -p found")\n'
+                           f'print({info!r})\n')
+        manager.chmod(0o755)
+        shim = self.root/'shims/node'; shim.parent.mkdir(); shim.symlink_to(manager)
+        with patch.object(plugin.shutil, 'which', return_value=str(shim)):
+            node, version = plugin.node_runtime()
+        self.assertEqual(node, binary)
+        self.assertEqual(version, '25.2.1')
+        self.assertNotEqual(node.parent, shim.parent)
+
+    def test_node_runtime_rejects_unavailable_reported_executable(self):
+        with patch.object(plugin.shutil, 'which', return_value='/usr/bin/node'), \
+             patch.object(plugin, 'run', return_value=json.dumps({'executable': 'relative/node', 'version': '25.2.1'})):
+            with self.assertRaisesRegex(RuntimeError, 'unavailable runtime'):
+                plugin.node_runtime()
+
     def test_ready_install_skips_build_and_preserves_other_launcher(self):
         app, revision = plugin.sync_application(self.source, self.base, Mock())
         for name in ['dist/client/index.html', '.venv/bin/python']:
