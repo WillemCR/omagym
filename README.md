@@ -16,12 +16,14 @@ On an x86-64 Omarchy laptop with the Quickshell plugin system:
 omarchy plugin add https://github.com/WillemCR/omagym.git --enable
 ```
 
-Click **<> Omagym** in your bar. First launch opens your default terminal, offers to install any missing system packages through Omarchy, installs locked app dependencies, builds the dashboard, and opens the language/project picker. Allow several minutes for this first setup. It requires internet access for dependency downloads, Node 24+ (tested with 25.2.1), system Ruby 3.4+, and working Bubblewrap user namespaces. It never signs you into Codex; use your existing installed, signed-in agent for coaching and project generation.
+Click **<> Omagym** in your bar. First launch installs the shared app dependencies, builds the dashboard and asks which language modules you want. Choose Go without needing Ruby, Rails, Rust or Chromium. Existing plugin installations also get this choice the first time they update to modular setup; saved work is preserved.
+
+**Omagym does not install or upgrade system packages.** If a selected module needs tools you do not have, it names the missing tools so you can install a compatible version yourself. Base setup needs Python, Git, Node 24+, npm and Bubblewrap with working user namespaces. Node is shared by the dashboard even when you only practice Go. First setup needs internet access for locked app dependencies; Ruby/Rails gems are downloaded only when you enable those modules. Your existing Codex login remains user-managed.
 
 For terminal-driven setup instead of clicking the widget:
 
 ```sh
-python3 ~/.config/omarchy/plugins/willemcr.omagym/scripts/plugin-launch.py --setup-only
+python3 ~/.config/omarchy/plugins/willemcr.omagym/scripts/plugin-launch.py --setup-only --modules go
 omagym start 01-wordstats
 ```
 
@@ -37,6 +39,33 @@ omarchy plugin remove willemcr.omagym
 Updating fast-forwards the managed app to the plugin's reviewed commit and rebuilds dependencies when needed. It refuses to overwrite app source edits or interrupt a busy owned backend. Saved learner work is preserved. Removing the plugin removes its bar integration; it keeps the app, its launchers and your practice data. To remove those launchers, run `python3 ~/.local/share/omagym/app/scripts/install-desktop.py --uninstall` (adjust for a custom `XDG_DATA_HOME`). Back up `workspaces/` and `generated/` before any manual app-directory removal.
 
 This is a direct Git installation; no marketplace listing or upstream approval is required. If `omarchy plugin` is unavailable on your Omarchy version, use the manual setup below.
+
+## Optional language modules
+
+```sh
+omagym modules                 # See enabled modules
+omagym modules choose          # Change your selection interactively
+omagym modules add go
+omagym modules add ruby         # Small local Ruby bundle, no Rails
+omagym modules add rails        # Rails also enables Ruby
+omagym modules add web
+omagym modules remove rails    # Keeps Ruby, dependencies and all your files
+```
+
+| Module | Additional requirements |
+| --- | --- |
+| `go` | System Go and a C compiler |
+| `rust` | System Rust/Cargo and a C compiler |
+| `javascript` | No extra runtime beyond shared Node |
+| `web` | System Chromium; covers HTML, CSS, React, Vue and Tailwind |
+| `ruby` | System Ruby 3.4+, build tools, and five locked local gems |
+| `rails` | System Ruby 3.4+, build tools, and the full local Rails bundle |
+
+The frontend and web tooling share the app's npm dependencies. Module selection controls optional system toolchain requirements and Ruby/Rails bundles; it does not split every JavaScript package into a separate download.
+
+Selections live in `.runtime/modules.json`. A disabled track remains browsable, but tests, previews and project generation explain which module to enable. You can enable more later without reinstalling the app. Re-run `modules add ruby` or `modules add rails` if you deliberately change system Ruby or need to refresh that module’s locked bundle. An idle running backend restarts after module changes; active operations must finish first. Disabling modules never uninstalls packages, deletes gems, or deletes learner files. Existing manual checkouts retain access until you explicitly choose modules.
+
+Non-interactive plugin setup can use `--modules go,javascript` or `--modules none`; without an explicit selection it prepares just the base app. For an existing plugin installation, `--choose-modules` opens the chooser again.
 
 ## Requirements
 
@@ -62,10 +91,8 @@ python3 -m venv .venv
 SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm ci
 npm run build
 
-# Optional for Go/JS/web-only practice; required for Ruby/Rails and all regression tests:
-mkdir -p .runtime/gems
-GEM_HOME="$PWD/.runtime/gems" GEM_PATH="$PWD/.runtime/gems" gem install bundler -v 4.0.20 --no-document --no-user-install --install-dir "$PWD/.runtime/gems" --bindir "$PWD/.runtime/gems/bin"
-GEM_HOME="$PWD/.runtime/gems" GEM_PATH="$PWD/.runtime/gems" .runtime/gems/bin/bundle install
+# Enable only what you want. Existing compatible system tools are required:
+./bin/omagym modules add go
 
 # Try it without installing a launcher:
 ./bin/omagym start 01-wordstats --terminal-only
@@ -144,7 +171,7 @@ The companion marks tests and feedback as outdated when saved files change. It c
 - `generated/`: validated custom exercise templates and metadata.
 - `.runtime/`: results, feedback, session records, logs and disposable caches.
 
-The last three directories are ignored by Git. Back up both `workspaces/` and `generated/` to retain custom projects and your work. Omagym does not provide an off-machine backup.
+The last three directories are ignored by Git. Ruby-only gems live in `.runtime/gems-ruby`; the full Rails bundle uses `.runtime/gems`. Back up both `workspaces/` and `generated/` to retain custom projects and your work. Omagym does not provide an off-machine backup.
 
 Snapshots include up to 100 UTF-8 files, 128 KB per file and 600 KB total. Hidden paths, symlinks, dependency folders and common temporary files are excluded. Keep credentials out of exercise source.
 

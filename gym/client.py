@@ -76,6 +76,20 @@ class Client:
             raise GymError('This port belongs to another service or an incompatible Omagym. Stop the old Omagym manually if upgrading.', 409)
         return value
 
+    def environment(self):
+        # Keep the plugin's verified Node runtime when a terminal module command
+        # restarts the server from a shell whose PATH contains manager shims.
+        env = dict(os.environ)
+        try:
+            value = json.loads((self.runtime/'plugin-ready.json').read_text()).get('nodeExecutable')
+            if isinstance(value, str):
+                node = Path(value)
+                if node.is_absolute() and node.is_file() and os.access(node, os.X_OK):
+                    env['PATH'] = str(node.parent)+os.pathsep+'/usr/bin'+os.pathsep+env.get('PATH', '')
+        except (OSError, ValueError, AttributeError):
+            pass
+        return env
+
     def ensure(self):
         self.runtime.mkdir(exist_ok=True)
         with file_lock(self.runtime/'server.lock'):
@@ -98,7 +112,7 @@ class Client:
             with (self.runtime/'server.log').open('ab') as log:
                 proc = subprocess.Popen([str(python), '-u', '-m', 'gym.server', '--port', str(self.port)],
                                         cwd=self.root, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
-                                        start_new_session=True)
+                                        start_new_session=True, env=self.environment())
             stamp = process_stamp(proc.pid)
             for _ in range(80):
                 if proc.poll() is not None:

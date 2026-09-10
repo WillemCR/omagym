@@ -35,6 +35,10 @@ def isolated(args, folder, runtime, env, timeout=120):
          '--ro-bind',str(ROOT/'gym/runtime'),str(ROOT/'gym/runtime')]
     gems=ROOT/'.runtime/gems'
     if gems.exists():cmd += ['--ro-bind',str(gems),str(gems),'--ro-bind',str(ROOT/'Gemfile'),str(ROOT/'Gemfile'),'--ro-bind',str(ROOT/'Gemfile.lock'),str(ROOT/'Gemfile.lock')]
+    ruby_gems=ROOT/'.runtime/gems-ruby'
+    if ruby_gems.exists():
+        cmd += ['--ro-bind',str(ruby_gems),str(ruby_gems),
+                '--ro-bind',str(ROOT/'modules/ruby'),str(ROOT/'modules/ruby')]
     node=Path(shutil.which('node') or '/usr/bin/node').resolve()
     if not node.is_relative_to('/usr'):
         cmd += ['--ro-bind',str(node.parent),str(node.parent)]
@@ -83,8 +87,9 @@ def execute(project, files, folder, runtime):
     elif runner in ('ruby','rails'):
         ruby=shutil.which('ruby')
         if not ruby:raise GymError('Ruby is not installed.',503)
-        gems=ROOT/'.runtime/gems'
-        env={'GEM_HOME':str(gems),'GEM_PATH':str(gems),'BUNDLE_GEMFILE':str(ROOT/'Gemfile'),'BUNDLE_FROZEN':'true'}
+        from .modules import ruby_bundle
+        gems,gemfile=ruby_bundle(ROOT,runner)
+        env={'GEM_HOME':str(gems),'GEM_PATH':str(gems),'BUNDLE_GEMFILE':str(gemfile),'BUNDLE_FROZEN':'true'}
         rc,output=isolated([ruby,'-rbundler/setup','-r'+str(ROOT/'gym/runtime/ruby-reporter.rb'),'challenge_test.rb','--verbose'],folder,runtime,env)
         lines=output.splitlines()
         for line in re.findall(r'OMAGYM_RESULT (\{[^\n]+\})',output):

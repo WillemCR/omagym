@@ -221,16 +221,18 @@ class Gym:
             return None
 
     def projects(self):
+        from .modules import info
         result = []
         for project in self.catalog:
             try:
-                result.append(dict(project,run=self.last_run(project['id'])))
+                result.append(dict(project,run=self.last_run(project['id']),module=info(self.root, project['track'])))
             except GymError as e:
                 result.append(dict(project,run=None,workspaceError=str(e)))
         return result
 
     def status(self, id):
-        project = self.project(id)
+        from .modules import info
+        project = dict(self.project(id), module=info(self.root, self.project(id)['track']))
         files, fingerprint = self.snapshot(id)
         def saved(suffix):
             try:
@@ -243,7 +245,14 @@ class Gym:
                 'fingerprint': fingerprint, 'files': list(files), 'busy': self.job_lock.locked(),
                 'run': saved('-run.json'), 'feedback': saved('-feedback.json')}
 
+    def require_module(self, track):
+        from .modules import info
+        module = info(self.root, track)
+        if not module['enabled']:
+            raise GymError(module['name']+' module is not enabled. Run in your terminal: '+module['command'], 409)
+
     def run(self, id):
+        self.require_module(self.project(id)['track'])
         if not self.job_lock.acquire(blocking=False):
             raise GymError('A test or coach run is already in progress.',409)
         try:
@@ -259,6 +268,7 @@ class Gym:
 
     def preview(self,id):
         project=self.project(id)
+        self.require_module(project['track'])
         if project['runner']!='browser':raise GymError('Preview is available for web exercises.')
         if not self.job_lock.acquire(blocking=False):raise GymError('Another exercise operation is running.',409)
         try:

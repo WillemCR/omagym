@@ -8,9 +8,10 @@ import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import Session from './session';
 
+type PracticeModule = { id: string; name: string; enabled: boolean; command: string };
 type Doc = { title: string; url: string };
 type Run = { passed: boolean; output: string; tests: { name: string; action: string }[]; elapsed: number; stale?: boolean; fingerprint: string };
-type Project = { id: string; track: string; runner: string; entry: string; generated?: boolean; title: string; level: string; summary: string; skills: string[]; requirements: string[]; docs: Doc[]; run?: Run };
+type Project = { module?: PracticeModule; id: string; track: string; runner: string; entry: string; generated?: boolean; title: string; level: string; summary: string; skills: string[]; requirements: string[]; docs: Doc[]; run?: Run };
 type FileEntry = { path: string; editable: boolean };
 type FileData = { content: string; revision: string; editable: boolean };
 type Feedback = { feedback: string; observations: string[]; questions: string[]; documentation: Doc[] };
@@ -79,7 +80,7 @@ function Dashboard() {
   const [generationError, setGenerationError] = useState('');
   const [preview, setPreview] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selected, setSelected] = useState('01-wordstats');
+  const [selected, setSelected] = useState('');
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [path, setPath] = useState('main.go');
   const [file, setFile] = useState<FileData | null>(null);
@@ -102,8 +103,9 @@ function Dashboard() {
   const runStale = !!run && (run.stale || dirty);
 
   async function refreshProjects() { const data = await api<{ projects: Project[] }>('/projects'); setProjects(data.projects); return data.projects as Project[]; }
-  useEffect(() => { refreshProjects().then(ps => setRun(ps.find(p => p.id === selected)?.run ?? null)).catch(e => setError(e.message)); const pending = localStorage.getItem('omagym-generation'); if (pending) api<Generation>(`/generation?id=${pending}`).then(setGeneration).catch(() => localStorage.removeItem('omagym-generation')); }, []);
+  useEffect(() => { refreshProjects().then(ps => { const first = ps.find(p => p.module?.enabled !== false) ?? ps[0]; if (first) { setSelected(first.id); setTrack(first.track); setGenerationTrack(first.track); setPath(first.entry); setRun(first.run ?? null); } }).catch(e => setError(e.message)); const pending = localStorage.getItem('omagym-generation'); if (pending) api<Generation>(`/generation?id=${pending}`).then(setGeneration).catch(() => localStorage.removeItem('omagym-generation')); }, []);
   useEffect(() => {
+    if (!selected) return;
     let cancelled = false;
     setFile(null); setError('');
     Promise.all([api<{ files: FileEntry[] }>(`/files?project=${selected}`), api<FileData>(`/file?project=${selected}&path=${encodeURIComponent(path)}`)]).then(([listing, data]) => {
@@ -111,6 +113,7 @@ function Dashboard() {
     }).catch(e => { if (!cancelled) setError(e.message); });
     return () => { cancelled = true; };
   }, [selected, path, reload]);
+  useEffect(() => { const refresh = () => { void refreshProjects().catch(e => setError(e.message)); }; window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh); }, []);
   useEffect(() => { const handler = (e: BeforeUnloadEvent) => { if (dirty) e.preventDefault(); }; window.addEventListener('beforeunload', handler); return () => window.removeEventListener('beforeunload', handler); }, [dirty]);
 
   const reviewState = useRef({ project, path, draft, dirty, run });
@@ -203,14 +206,15 @@ function Dashboard() {
     <div className="workspace">
       <aside className="project-rail">
         <div className="rail-heading"><span className="eyebrow">TRAINING PATH</span><span className="go-mark">{TRACKS[track]}</span></div>
-        <h1>Learn by shipping.</h1><p className="muted rail-intro">{visibleProjects.length} projects in this track.<br/>Every line is yours.</p><NativeSelect aria-label="Language or framework" value={track} disabled={!!busy || loading || !projects.length} onChange={e => chooseTrack(e.target.value)}>{Object.entries(TRACKS).map(([key,label]) => <NativeSelectOption key={key} value={key}>{label} · {projects.filter(p=>p.track===key).length}</NativeSelectOption>)}</NativeSelect>
+        <h1>Learn by shipping.</h1><p className="muted rail-intro">{visibleProjects.length} projects in this track.<br/>Every line is yours.</p><NativeSelect aria-label="Language or framework" value={track} disabled={!!busy || loading || !projects.length} onChange={e => chooseTrack(e.target.value)}>{Object.entries(TRACKS).map(([key,label]) => <NativeSelectOption key={key} value={key}>{label} · {projects.filter(p=>p.track===key).length}{projects.find(p=>p.track===key)?.module?.enabled === false ? ' · module off' : ''}</NativeSelectOption>)}</NativeSelect>
         <nav aria-label="Exercises">{visibleProjects.map((p,i) => <button key={p.id} className={'project-link ' + (selected === p.id ? 'selected' : '')} disabled={!!busy || loading} onClick={() => chooseProject(p.id)}><span className={'project-number '+(p.run?.passed && !p.run.stale ? 'done':'')}>{p.run?.passed && !p.run.stale ? <Check size={16}/> : String(i+1).padStart(2,'0')}</span><span><strong>{p.title}</strong><small>{p.generated ? 'Your project' : p.level.split(' · ').at(-1)}</small></span>{selected === p.id && <ChevronRight size={15}/>}</button>)}</nav>
         <div className="progress-block"><div><span>YOUR PROGRESS</span><strong>{completed} / {visibleProjects.length}</strong></div><Progress value={visibleProjects.length ? completed/visibleProjects.length*100 : 0}/><p>Passing tests complete a project.</p></div>
         <div className="rail-note"><ShieldCheck size={20}/><p>The coach can read your code.<br/>Only you can write it.</p></div>
       </aside>
       <section className="work-area">
-        <div className="workspace-heading"><div><div className="eyebrow">{TRACKS[project?.track || track]} WORKSPACE <ChevronRight size={12}/> {project?.level || 'Foundations'}</div><h2>{project?.title || 'Word counter'}</h2></div><div className="actions">{project?.runner === 'browser' && <Button variant="outline" disabled={!!busy || loading} onClick={buildPreview}><Eye/> Preview</Button>}<Button variant="outline" disabled={!!busy || !dirty} onClick={() => task('Saving', save)}><Save/> Save</Button><Button className="run-button" disabled={!!busy || loading} onClick={test}>{busy === 'Running tests' ? <LoaderCircle className="spin"/> : <Play/>} {busy === 'Running tests' ? 'Running…' : 'Run tests'}</Button></div></div>
+        <div className="workspace-heading"><div><div className="eyebrow">{TRACKS[project?.track || track]} WORKSPACE <ChevronRight size={12}/> {project?.level || 'Foundations'}</div><h2>{project?.title || 'Word counter'}</h2></div><div className="actions">{project?.runner === 'browser' && <Button variant="outline" disabled={!!busy || loading || project?.module?.enabled === false} onClick={buildPreview}><Eye/> Preview</Button>}<Button variant="outline" disabled={!!busy || !dirty} onClick={() => task('Saving', save)}><Save/> Save</Button><Button className="run-button" disabled={!!busy || loading || project?.module?.enabled === false} onClick={test}>{busy === 'Running tests' ? <LoaderCircle className="spin"/> : <Play/>} {busy === 'Running tests' ? 'Running…' : 'Run tests'}</Button></div></div>
         {(error || notice || busy) && <div className={'message '+(error ? 'error':'')} role={error ? 'alert':'status'}>{error || busy || notice}{!busy && <button aria-label="Dismiss message" onClick={() => {setError('');setNotice('');}}><X size={14}/></button>}</div>}
+        {project?.module && !project.module.enabled && <div className="module-notice">Enable the {project.module.name} module in your terminal: <code>{project.module.command}</code><span>Your files stay available while this module is disabled.</span></div>}
         <div className="coding-grid">
           <section className="editor-panel">
             <div className="file-layout"><aside className="file-tree"><div className="file-heading"><FolderOpen size={15}/><span>FILES</span><button title="New file" aria-label="New file" disabled={!!busy || loading} onClick={() => setNewFile('')}><Plus size={16}/></button></div>{newFile !== null && <form onSubmit={e => {e.preventDefault(); void task('Creating file', async () => {await save(); await api('/file', {project:selected,path:newFile,content:'',create:true});setPath(newFile);setNewFile(null);setReload(x=>x+1);});}}><input aria-label="New file path" autoFocus placeholder="helpers.go" value={newFile} onChange={e=>setNewFile(e.target.value)}/><Button type="submit" disabled={!!busy || !newFile}>Create</Button><button type="button" aria-label="Cancel new file" onClick={()=>setNewFile(null)}><X size={14}/></button></form>}{files.map(f => <button key={f.path} title={f.path} disabled={!!busy || loading} className={'file-link '+(path===f.path?'active':'')} onClick={() => chooseFile(f.path)}><FileCode2 size={14}/><span>{f.path}</span>{!f.editable && <span className="readonly-dot" title="Read only">·</span>}</button>)}</aside>

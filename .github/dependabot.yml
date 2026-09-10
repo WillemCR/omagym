@@ -20,6 +20,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
+  - package-ecosystem: bundler
+    directory: /modules/ruby
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -115,6 +115,23 @@ class PluginTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'unavailable runtime'):
                 plugin.node_runtime()
 
+    def test_core_prerequisites_never_probe_ruby_or_install_system_packages(self):
+        def which(name):
+            self.assertIn(name, ['git', 'node', 'npm', 'bwrap'])
+            return '/usr/bin/'+name
+        with patch.object(plugin.shutil, 'which', side_effect=which), \
+             patch.object(plugin, 'node_runtime', return_value=(Path('/usr/bin/node'), '25.2.1')), \
+             patch.object(plugin, 'run', return_value='') as run:
+            _, versions = plugin.prerequisites(True)
+        self.assertNotIn('ruby', versions)
+        self.assertEqual([call.args[0][0] for call in run.call_args_list], ['bwrap'])
+
+    def test_missing_base_tools_are_reported_without_package_manager(self):
+        with patch.object(plugin.shutil, 'which', return_value=None), patch.object(plugin, 'run') as run:
+            with self.assertRaisesRegex(RuntimeError, 'has not changed your system'):
+                plugin.prerequisites(True)
+        run.assert_not_called()
+
     def test_ready_install_skips_build_and_preserves_other_launcher(self):
         app, revision = plugin.sync_application(self.source, self.base, Mock())
         for name in ['dist/client/index.html', '.venv/bin/python']:
@@ -122,6 +139,7 @@ class PluginTests(unittest.TestCase):
         runtime = app/'.runtime'; runtime.mkdir()
         versions = {'node': '25.2.1', 'ruby': '3.4.10', 'python': '3.14.7'}
         (runtime/'plugin-ready.json').write_text(json.dumps(dict(versions, revision=revision)))
+        (runtime/'modules.json').write_text(json.dumps({'schemaVersion': 1, 'enabled': []}))
         # Test fixtures emulate dependencies without making tracked source edits.
         original = subprocess.run
         with patch.object(plugin, 'prerequisites', return_value=({}, versions)), \

@@ -4,10 +4,11 @@ import { ArrowUpRight, BookOpen, Check, CheckCircle2, ChevronRight, Clipboard, C
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+type PracticeModule = { id: string; name: string; enabled: boolean; command: string };
 type Doc = { title: string; url: string };
 type Run = { passed: boolean; output: string; tests: { name: string; action: string }[]; elapsed: number; stale: boolean; fingerprint: string };
 type Feedback = { feedback: string; observations: string[]; questions: string[]; documentation: Doc[]; fingerprint: string; stale: boolean; reviewedAt: number; testFingerprint: string | null };
-type Status = { project: { id: string; title: string; track: string; level: string; summary: string; skills: string[]; requirements: string[]; docs: Doc[]; runner: string }; folder: string; files: string[]; fingerprint: string; busy: boolean; run: Run | null; feedback: Feedback | null };
+type Status = { project: { module?: PracticeModule; id: string; title: string; track: string; level: string; summary: string; skills: string[]; requirements: string[]; docs: Doc[]; runner: string }; folder: string; files: string[]; fingerprint: string; busy: boolean; run: Run | null; feedback: Feedback | null };
 
 async function request<T>(path: string, body?: object): Promise<T> {
   const response = await fetch('/api'+path, {signal:AbortSignal.timeout(body?240000:8000),...(body ? {method:'POST',headers:{'Content-Type':'application/json','X-Code-Gym':'1'},body:JSON.stringify(body)} : {cache:'no-store' as const})});
@@ -84,7 +85,8 @@ export default function Session({projectId}: {projectId: string}) {
       <div className="session-folder"><FolderOpen size={16}/><code>{status?.folder || 'Connecting to your project folder'}</code><button title="Copy project folder" aria-label="Copy project folder" disabled={!status} onClick={()=>void copy(status!.folder,'folder')}>{copied==='folder'?<Check size={15}/>:<Clipboard size={15}/>}</button></div>
       {connectionError && <div className="session-alert" role="alert"><p>{connectionError}</p><Button variant="outline" onClick={()=>void refresh()}>Retry connection</Button><small>From your terminal: <code>omagym server start</code></small></div>}
       {actionError && <div className="session-alert" role="alert"><p>{actionError}</p><button onClick={()=>setActionError('')}>Dismiss</button></div>}
-      <div className="session-actions"><Button className="session-run" disabled={disabled} onClick={()=>void action('run')}>{busy==='run'?<LoaderCircle className="spin"/>:<Play/>}{busy==='run'?'Running suite…':'Run tests'}</Button><span><ShieldCheck size={14}/> Tests and feedback use saved files.</span></div>
+      {project?.module && !project.module.enabled && <div className="module-notice">Enable the {project.module.name} module in your terminal: <code>{project.module.command}</code><span>Your saved files are preserved.</span></div>}
+      <div className="session-actions"><Button className="session-run" disabled={disabled || project?.module?.enabled === false} onClick={()=>void action('run')}>{busy==='run'?<LoaderCircle className="spin"/>:<Play/>}{busy==='run'?'Running suite…':'Run tests'}</Button><span><ShieldCheck size={14}/> Tests and feedback use saved files.</span></div>
       <div aria-live="polite" className="session-live">{busy==='coach'?'Your coach is reading the saved project. This can take a few minutes.':busy==='preview'?'Building your saved source…':status?.busy && !busy?'Another exercise operation is running. You can keep editing.':copied?'Copied to clipboard.':''}</div>
       <Tabs value={tab} onValueChange={value=>setTab(String(value))}>
         <TabsList className="session-tabs" variant="line"><TabsTrigger value="brief"><BookOpen/>Brief</TabsTrigger><TabsTrigger value="tests"><Terminal/>Tests{run && <span className={'session-count '+(!run.stale && run.passed?'complete':'')}>{passed}/{run.tests.length}</span>}</TabsTrigger><TabsTrigger value="coach"><ShieldCheck/>Coach</TabsTrigger>{project?.runner==='browser' && <TabsTrigger value="preview"><Eye/>Preview</TabsTrigger>}</TabsList>

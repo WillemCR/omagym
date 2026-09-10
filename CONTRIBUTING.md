@@ -2,7 +2,7 @@
 
 Omagym keeps practice in real project folders and gives feedback without writing the learner's solution. Changes should preserve that boundary and the terminal-only workflow.
 
-Complete the setup in [README.md](README.md), including the local Ruby bundle, then run:
+Complete the setup in [README.md](README.md). The full regression suite also requires the Rails bundle for its real Ruby reporter fixture: run `./bin/omagym modules add rails` in a development checkout with compatible system Ruby. Then run:
 
 ```sh
 npm run check
@@ -49,3 +49,5 @@ Use temporary projects for destructive fixtures. Keep any private local verifica
 `manifest.json` and `plugin/OmagymWidget.qml` provide the native bar launcher. The first-click setup in `scripts/plugin-launch.py` maintains a separate app checkout under the user data directory; do not put dependencies or learner data in the removable plugin folder. Plugin sources must remain free of symlinks for Omarchy’s validator.
 
 Validate a clean source export with `omarchy plugin validate <folder>`. The regular regression suite exercises setup ownership, update preservation, busy-backend refusal and concurrent installer locking. On Omarchy, additionally load the widget in Quickshell and run setup in an isolated absolute `XDG_DATA_HOME` with `--setup-only --no-packages --no-launcher` before testing on the desktop. Native plugin validation and Quickshell integration are local checks, not part of the Ubuntu CI job.
+
+Language modules are defined in `gym/modules.py`. Keep system package management outside Omagym. Go-only setup must not inspect Ruby or install gems; Ruby-only setup must not pull Rails. Test failed setup, disabling modules, preservation of learner files, and backend enforcement as well as the chooser.

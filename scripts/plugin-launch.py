@@ -15,6 +15,8 @@ import tempfile
 SOURCE = Path(__file__).resolve().parent.parent
 REPOSITORY = 'https://github.com/WillemCR/omagym.git'
 PLUGIN_ID = 'willemcr.omagym'
+sys.path.insert(0, str(SOURCE))
+from gym import modules as practice_modules
 
 
 def run(args, *, cwd=None, env=None, capture=False):
@@ -78,31 +80,21 @@ def prerequisites(allow_packages):
         raise RuntimeError('Python 3.11 or newer is required.')
     if platform.system() != 'Linux' or platform.machine() != 'x86_64':
         raise RuntimeError('This plugin release targets x86-64 Linux/Omarchy.')
-    # Compilers/Ruby are system tools so they remain available inside Bubblewrap.
-    system = {'/usr/bin/go': 'go', '/usr/bin/cargo': 'rust', '/usr/bin/rustc': 'rust',
-              '/usr/bin/ruby': 'ruby', '/usr/bin/gem': 'ruby', '/usr/bin/chromium': 'chromium',
-              '/usr/bin/cc': 'base-devel', '/usr/bin/make': 'base-devel'}
+    # Core setup only needs the shared app runtime. Never invoke a system
+    # package manager: its dependency resolution may upgrade existing tools.
     commands = {'git': 'git', 'node': 'nodejs', 'npm': 'npm', 'bwrap': 'bubblewrap'}
-    missing = sorted({pkg for path, pkg in system.items() if not Path(path).is_file()}
-                     | {pkg for cmd, pkg in commands.items() if not shutil.which(cmd)})
+    missing = sorted({pkg for cmd, pkg in commands.items() if not shutil.which(cmd)})
     if missing:
-        print('Required system packages: '+', '.join(missing), flush=True)
-        if not allow_packages or not shutil.which('omarchy') or not sys.stdin.isatty():
-            raise RuntimeError('Install with: omarchy pkg add '+' '.join(missing))
-        if input('Install these missing packages with Omarchy? [y/N] ').strip().lower() not in ('y', 'yes'):
-            raise RuntimeError('Setup cancelled; system packages were not installed.')
-        run(['omarchy', 'pkg', 'add', *missing])
+        raise RuntimeError('Missing base requirements: '+', '.join(missing)
+                           +'. Install compatible tools yourself, then retry. Omagym has not changed your system.')
     node, version = node_runtime()
     # Node 24+ supports all test-reporter options used by this release.
     if int(version.split('.')[0]) < 24:
         raise RuntimeError('Node 24+ is required for plugin setup. The tested version is in .node-version; select it with your runtime manager and retry.')
-    ruby = run(['/usr/bin/ruby', '-e', 'print RUBY_VERSION'], capture=True)
-    if tuple(map(int, ruby.split('.')[:2])) < (3, 4):
-        raise RuntimeError('System Ruby 3.4+ is required for the locked Rails bundle.')
     run(['bwrap', '--unshare-all', '--ro-bind', '/', '/', '--', '/usr/bin/true'], capture=True)
     env = dict(os.environ)
     env['PATH'] = str(node.parent)+':/usr/bin:'+os.environ.get('PATH', '')
-    return env, {'node': version, 'ruby': ruby, 'python': platform.python_version()}
+    return env, {'node': version, 'nodeExecutable': str(node), 'python': platform.python_version()}
 
 
 def sync_application(source, base, before_change):
@@ -153,7 +145,7 @@ def stop_owned_backend(app):
     run([python, '-m', 'gym.cli', 'server', 'stop'], cwd=app, env=env)
 
 
-def prepare(source, base, allow_packages=True, install_launcher=True):
+def prepare(source, base, allow_packages=True, install_launcher=True, modules=None, choose_modules=False):
     env, versions = prerequisites(allow_packages)
     with setup_lock(base):
         app, revision = sync_application(source, base, stop_owned_backend)
@@ -165,15 +157,19 @@ def prepare(source, base, allow_packages=True, install_launcher=True):
             stop_owned_backend(app)
             print('Preparing Omagym. The first installation can take several minutes.', flush=True)
             run([sys.executable, '-m', 'venv', app/'.venv'], env=env)
-            local = dict(env, SHARP_IGNORE_GLOBAL_LIBVIPS='1',
-                         GEM_HOME=str(runtime/'gems'), GEM_PATH=str(runtime/'gems'),
-                         BUNDLE_GEMFILE=str(app/'Gemfile'), BUNDLE_FROZEN='true')
+            local = dict(env, SHARP_IGNORE_GLOBAL_LIBVIPS='1')
             run(['npm', 'ci', '--no-fund'], cwd=app, env=local)
-            run(['/usr/bin/gem', 'install', 'bundler', '-v', '4.0.20', '--no-document', '--no-user-install',
-                 '--install-dir', runtime/'gems', '--bindir', runtime/'gems/bin'], cwd=app, env=local)
-            run([runtime/'gems/bin/bundle', 'install'], cwd=app, env=local)
             run(['npm', 'run', 'build'], cwd=app, env=local)
             save_json(ready, stamp)
+        configured = practice_modules.config_path(app).exists()
+        if modules is not None or choose_modules or not configured:
+            selected = modules
+            if selected is None:
+                selected = practice_modules.choose(practice_modules.enabled(app) if configured else []) if sys.stdin.isatty() else []
+            stop_owned_backend(app)
+            practice_modules.configure(app, selected, env=env)
+        else:
+            print('Enabled modules: '+(', '.join(practice_modules.enabled(app)) or 'none')+'. Add more with: omagym modules choose', flush=True)
         # A pre-existing hand-installed copy may own these names; never replace it.
         if install_launcher:
             installed = subprocess.run([sys.executable, str(app/'scripts/install-desktop.py')], cwd=app, env=env)
@@ -185,12 +181,15 @@ def prepare(source, base, allow_packages=True, install_launcher=True):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--setup-only', action='store_true', help='Prepare dependencies without opening a practice session')
-    parser.add_argument('--no-packages', action='store_true', help='Report missing system packages instead of offering to install them')
+    parser.add_argument('--no-packages', action='store_true', help='Compatibility flag; setup never installs system packages')
     parser.add_argument('--no-launcher', action='store_true', help='Keep command/application launchers unchanged (useful for isolated setup testing)')
+    parser.add_argument('--modules', help='Choose comma-separated modules: go,rust,javascript,web,ruby,rails (or none)')
+    parser.add_argument('--choose-modules', action='store_true', help='Choose which practice modules to enable')
     args = parser.parse_args()
     print('Omagym · independent community software\nNot officially supported or endorsed by DHH or Omacom.\n', flush=True)
     try:
-        app, env = prepare(SOURCE, data_directory(), not args.no_packages, not args.no_launcher)
+        selected = None if args.modules is None else [] if args.modules == 'none' else practice_modules.normalize(args.modules.split(','))
+        app, env = prepare(SOURCE, data_directory(), not args.no_packages, not args.no_launcher, selected, args.choose_modules)
         if args.setup_only:
             print(f'Ready. Application and learner data: {app}')
             return 0

@@ -79,6 +79,10 @@ def parser():
     server = sub.add_parser('server', help='Manage the local backend')
     server.add_argument('operation', choices=['start', 'status', 'stop'])
     server.add_argument('--json', action='store_true', default=argparse.SUPPRESS)
+    modules = sub.add_parser('modules', help='Choose optional language modules without changing system toolchains')
+    modules.add_argument('operation', choices=['list', 'add', 'remove', 'choose'], nargs='?', default='list')
+    modules.add_argument('names', nargs='*')
+    modules.add_argument('--json', action='store_true', default=argparse.SUPPRESS)
     return p
 
 
@@ -90,7 +94,9 @@ def pick(client):
     labels = {'go':'Go','rust':'Rust','javascript':'Modern JavaScript','react':'React','vue':'Vue',
               'html':'HTML','html-css':'HTML + CSS','tailwind':'Tailwind','ruby':'Ruby','rails':'Ruby on Rails'}
     for i, track in enumerate(tracks, 1):
-        show(f' {i:2}. {labels.get(track, track)} · {sum(p["track"]==track for p in projects)} projects')
+        module = next((p.get('module') for p in projects if p['track'] == track), None)
+        suffix = ' · not enabled ('+module['command']+')' if module and not module['enabled'] else ''
+        show(f' {i:2}. {labels.get(track, track)} · {sum(p["track"]==track for p in projects)} projects'+suffix)
     try: answer = input('\nLanguage number (Enter to cancel): ').strip()
     except EOFError: return None
     if not answer: return None
@@ -130,7 +136,36 @@ def main(argv=None):
     output = None
     code = 0
     try:
-        if args.action == 'server':
+        if args.action == 'modules':
+            from . import modules
+            if args.operation != 'list':
+                names = modules.choose(modules.enabled(ROOT) if modules.config_path(ROOT).exists() else []) if args.operation == 'choose' else args.names
+                if args.operation in ('add', 'remove') and not names:
+                    raise GymError('Name at least one module, for example: omagym modules add go')
+                # Dependency changes happen only after an owned backend is idle.
+                setup_path = ROOT.parent/'setup.lock' if (ROOT.parent/'managed-app.json').exists() else ROOT/'.runtime/setup.lock'
+                with file_lock(setup_path):
+                    was_running = False
+                    try:
+                        client.identity()
+                    except GymError as error:
+                        if error.status != 503:
+                            raise
+                    else:
+                        client.stop()
+                        was_running = True
+                    try:
+                        modules.configure(ROOT, names, action='set' if args.operation == 'choose' else args.operation)
+                    finally:
+                        if was_running:
+                            client.ensure()
+            selected = modules.enabled(ROOT)
+            output = {'modules': [dict(id=name, name=spec['name'], enabled=name in selected) for name, spec in modules.MODULES.items()]}
+            if not args.json:
+                for module in output['modules']:
+                    show(f"{module['id']:12} {'enabled' if module['enabled'] else 'not enabled':12} {module['name']}")
+                show('\nAdd: omagym modules add ruby\nChoose: omagym modules choose\nRemoving a module keeps all learner files and installed dependencies.')
+        elif args.action == 'server':
             output = client.ensure() if args.operation == 'start' else client.stop() if args.operation == 'stop' else client.identity()
             if not args.json: show('Backend stopped.' if args.operation == 'stop' else f'Omagym is ready at {client.url}')
         else:
@@ -211,7 +246,7 @@ def main(argv=None):
                     if not args.json: show(output.get('message', 'Opened your default file manager.'))
         if args.json: print(json.dumps(output, ensure_ascii=True))
         return code
-    except (GymError, OSError) as e:
+    except (GymError, OSError, ValueError, RuntimeError) as e:
         code = 3 if getattr(e, 'status', None) == 409 else 2
         if args.json: print(json.dumps({'error':str(e),'code':code}))
         else: print('Omagym: '+plain(e), file=sys.stderr)

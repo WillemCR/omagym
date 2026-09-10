@@ -128,6 +128,7 @@ class Generator:
 
     def start(self,prompt,track,timebox='A weekend'):
         if track not in TRACKS:raise GymError('Choose a supported language or framework.')
+        self.gym.require_module(track)
         if not isinstance(prompt,str) or not 20<=len(prompt.strip())<=4000:raise GymError('Describe your project in 20–4,000 characters.')
         if not isinstance(timebox,str) or not 1<=len(timebox)<=80:raise GymError('Provide a short timebox.')
         if not self.gym.job_lock.acquire(blocking=False):raise GymError('Another test, coach, or generator is busy.',409)
