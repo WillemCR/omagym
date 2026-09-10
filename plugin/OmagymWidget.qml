@@ -1,13 +1,16 @@
 import QtQuick
 import Quickshell
+import qs.Commons
 
 Item {
     id: root
     property QtObject bar: null
     property string moduleName: "willemcr.omagym"
     property var settings: ({})
-    implicitWidth: bar ? bar.barSize : 32
-    implicitHeight: bar ? bar.barSize : 32
+    readonly property bool vertical: bar ? bar.vertical : false
+    readonly property int barSize: bar ? bar.barSize : Style.bar.sizeHorizontal
+    implicitWidth: vertical ? barSize : Style.bar.iconSlot
+    implicitHeight: vertical ? Style.bar.iconSlot : barSize
     activeFocusOnTab: true
     Accessible.role: Accessible.Button
     Accessible.name: "Open Omagym coding practice"
@@ -26,6 +29,7 @@ Item {
         anchors.centerIn: parent
         width: 20
         height: 20
+        scale: Style.bar.iconCanvas / 20
         rotation: -45
         readonly property color foreground: root.bar ? root.bar.barForeground : "#cdd6f4"
         opacity: mouse.containsMouse || root.activeFocus ? 1 : 0.85
