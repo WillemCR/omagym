@@ -91,7 +91,7 @@ class ModuleTests(unittest.TestCase):
             generator.start('Build a useful testable project', 'go')
         self.assertFalse(gym.job_lock.locked())
         self.assertFalse(gym.status('01-wordstats')['project']['module']['enabled'])
-        self.assertEqual(len(gym.projects()), 47)
+        self.assertEqual(len(gym.projects()), 52)
 
     def test_chooser_accepts_numbers_and_none(self):
         with patch('builtins.input', return_value='1, 3'):

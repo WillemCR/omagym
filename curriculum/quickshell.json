@@ -1,0 +1,226 @@
+[
+  {
+    "id": "quickshell-01-badge",
+    "track": "quickshell",
+    "runner": "quickshell",
+    "entry": "Main.qml",
+    "title": "Reactive status badge",
+    "level": "01 \u00b7 QML bindings",
+    "summary": "Build a compact percentage badge that responds to changing data and available space.",
+    "skills": [
+      "properties",
+      "bindings",
+      "Text",
+      "Rectangle"
+    ],
+    "requirements": [
+      "Main.qml is an Item with title (string, initially CPU), percent (int, initially 0), and warningAt (int, initially 80). Its initial width is 240 and height is 40.",
+      "A Text named label displays title followed by a colon, a space, the percentage clamped to 0\u2013100, and %. Changing title or percent must update it immediately.",
+      "A Rectangle named meter has width equal to the component width multiplied by the clamped percentage divided by 100. Resizing the component updates the meter.",
+      "The meter color is #ef9a9a when the clamped percentage is at least warningAt, otherwise #a6d87b. The label must remain readable on the dark practice window."
+    ],
+    "docs": [
+      {
+        "title": "Property bindings",
+        "url": "https://doc.qt.io/qt-6/qtqml-syntax-propertybinding.html"
+      },
+      {
+        "title": "Rectangle",
+        "url": "https://doc.qt.io/qt-6/qml-qtquick-rectangle.html"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.qml"
+    ],
+    "checks": [
+      "test_initial_label",
+      "test_live_text",
+      "test_clamping",
+      "test_warning_boundary",
+      "test_threshold_binding",
+      "test_resize_binding"
+    ]
+  },
+  {
+    "id": "quickshell-02-clock",
+    "track": "quickshell",
+    "runner": "quickshell",
+    "entry": "Main.qml",
+    "title": "Clock with a testable time source",
+    "level": "02 \u00b7 Quickshell services",
+    "summary": "Make a live clock with predictable formatting and an optional time override.",
+    "skills": [
+      "SystemClock",
+      "date formatting",
+      "property aliases",
+      "reactivity"
+    ],
+    "requirements": [
+      "Main.qml is an Item with use24Hours (bool, true), showSeconds (bool, false), overrideTime (var, null), and clock, an alias to a real enabled SystemClock.",
+      "A Text named clockLabel shows overrideTime when it is a Date; when overrideTime is null it shows clock.date in local time.",
+      "24-hour output uses two-digit hours and minutes: 09:05. 12-hour output uses unpadded hours and uppercase AM/PM: 9:05 AM. Midnight is 12:00 AM and noon is 12:00 PM.",
+      "When showSeconds is true, append two-digit seconds before AM/PM if present. Every input property remains reactive.",
+      "Use SystemClock.Minutes precision when seconds are hidden and SystemClock.Seconds when shown. Removing overrideTime returns the display to the live clock."
+    ],
+    "docs": [
+      {
+        "title": "SystemClock",
+        "url": "https://quickshell.org/docs/v0.2.1/types/Quickshell/SystemClock/"
+      },
+      {
+        "title": "Qt date formatting",
+        "url": "https://doc.qt.io/qt-6/qml-qtqml-qt.html#formatDateTime-method"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.qml"
+    ],
+    "checks": [
+      "test_24_hour_padding",
+      "test_midnight_and_noon",
+      "test_seconds_and_pm",
+      "test_time_replacement",
+      "test_precision",
+      "test_return_to_live_time"
+    ]
+  },
+  {
+    "id": "quickshell-03-workspaces",
+    "track": "quickshell",
+    "runner": "quickshell",
+    "entry": "Main.qml",
+    "title": "Workspace switcher",
+    "level": "03 \u00b7 Models and signals",
+    "summary": "Build a reusable workspace strip using supplied data, without talking to the compositor.",
+    "skills": [
+      "Repeater",
+      "delegates",
+      "MouseArea",
+      "signals"
+    ],
+    "requirements": [
+      "Main.qml is an Item with workspaces (array of distinct positive integer IDs, initially [1,2,3]), activeId (int, initially 1), and signal requested(int workspaceId).",
+      "Render one Rectangle per ID, in input order, in a horizontal row. Each is named workspace-ID and contains a Text named workspace-label-ID showing the ID, plus a MouseArea named workspace-click-ID.",
+      "The active workspace rectangle is #a6d87b; all others are #344653. Changing activeId updates the colors, including IDs not present in the model (none active).",
+      "Clicking a delegate emits requested with its own ID exactly once. It must not change activeId: the caller owns selection state.",
+      "Replacing workspaces updates the delegates. Nonconsecutive IDs such as [2,7,11] work. An empty array removes all delegates. Do not call Hyprland or any desktop command."
+    ],
+    "docs": [
+      {
+        "title": "Repeater",
+        "url": "https://doc.qt.io/qt-6/qml-qtquick-repeater.html"
+      },
+      {
+        "title": "Signals and handlers",
+        "url": "https://doc.qt.io/qt-6/qtqml-syntax-signals.html"
+      },
+      {
+        "title": "MouseArea",
+        "url": "https://doc.qt.io/qt-6/qml-qtquick-mousearea.html"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.qml"
+    ],
+    "checks": [
+      "test_initial_delegates",
+      "test_active_binding",
+      "test_replacement_ids",
+      "test_click_signal",
+      "test_caller_owns_selection",
+      "test_empty_model"
+    ]
+  },
+  {
+    "id": "quickshell-04-process",
+    "track": "quickshell",
+    "runner": "quickshell",
+    "entry": "Main.qml",
+    "title": "Command status widget",
+    "level": "04 \u00b7 Asynchronous processes",
+    "summary": "Display the result of a bounded local command and handle failure and refresh safely.",
+    "skills": [
+      "Process",
+      "StdioCollector",
+      "asynchronous state",
+      "argument arrays"
+    ],
+    "requirements": [
+      "Main.qml is an Item with command (argument array, initially [/usr/bin/printf, %s\\n, ready]), status (string, idle), output (string, empty), alias job for its Quickshell.Io Process, and function refresh(). Do not auto-run on creation.",
+      "refresh starts command using Process argument arrays, sets status to running and clears output. Never wrap the command in a shell; spaces, semicolons and dollar signs are literal arguments.",
+      "Collect stdout with StdioCollector and store its trimmed text in output when finished. On exit code 0 set status to success; on any nonzero exit code set error. Empty output is valid.",
+      "Calling refresh while the process is running must be ignored, without restarting it. After completion, changing command and calling refresh starts a new run, including recovery from error.",
+      "A Text named statusLabel displays status and a Text named outputLabel displays output, both reactively. Tests use only printf, false and a short sleep in the sandbox; do not add commands that alter the system."
+    ],
+    "docs": [
+      {
+        "title": "Process",
+        "url": "https://quickshell.org/docs/v0.2.1/types/Quickshell.Io/Process/"
+      },
+      {
+        "title": "StdioCollector",
+        "url": "https://quickshell.org/docs/v0.2.1/types/Quickshell.Io/StdioCollector/"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.qml"
+    ],
+    "checks": [
+      "test_idle",
+      "test_success_output",
+      "test_literal_arguments",
+      "test_nonzero_exit",
+      "test_recovery",
+      "test_running_refresh_is_ignored"
+    ]
+  },
+  {
+    "id": "quickshell-05-panel",
+    "track": "quickshell",
+    "runner": "quickshell",
+    "entry": "Main.qml",
+    "title": "Responsive practice panel",
+    "level": "05 \u00b7 Layout and composition",
+    "summary": "Build responsive panel content from reusable components, then view it in a separate PanelWindow.",
+    "skills": [
+      "anchors",
+      "responsive layout",
+      "component composition",
+      "PanelWindow wrapper"
+    ],
+    "requirements": [
+      "Main.qml is an Item with panelHeight (int, 28), title (string, Omagym practice), detail (string, Ready), accent (color, #a6d87b), and initial width 480. implicitHeight clamps panelHeight to 20\u201380; height initially follows implicitHeight.",
+      "A Text named panelLabel displays title and is visible only when the component width is at least 320. Changing title and resizing must update it.",
+      "A Text named detailLabel always displays detail. Its right edge stays 12 pixels from the component right edge, including at narrow widths.",
+      "Use a local StatusDot.qml component named statusDot, positioned at x=12. StatusDot is an 8 by 8 circular Rectangle with a dotColor property defaulting to #a6d87b; its rendered color follows dotColor. Main passes accent to the dot.",
+      "Vertically center all three items. panelLabel begins 8 pixels after the dot right edge. Use readable text on the dark practice panel.",
+      "The supplied shell.qml wraps Main in a real top-anchored PanelWindow. Tests exercise the content offscreen; screen-edge placement is a manual check using quickshell --path shell.qml. Ctrl+C closes only this practice panel. Do not modify your installed shell."
+    ],
+    "docs": [
+      {
+        "title": "PanelWindow",
+        "url": "https://quickshell.org/docs/v0.2.1/types/Quickshell/PanelWindow/"
+      },
+      {
+        "title": "Defining QML types",
+        "url": "https://doc.qt.io/qt-6/qtqml-documents-definetypes.html"
+      },
+      {
+        "title": "Positioners",
+        "url": "https://doc.qt.io/qt-6/qtquick-positioning-layouts.html"
+      }
+    ],
+    "testFiles": [
+      "challenge_test.qml",
+      "shell.qml"
+    ],
+    "checks": [
+      "test_height_bounds",
+      "test_responsive_title",
+      "test_title_binding",
+      "test_detail_binding_and_alignment",
+      "test_reusable_dot",
+      "test_spacing_and_vertical_alignment"
+    ]
+  }
+]

@@ -15,6 +15,7 @@ MODULES = {
     'web': {'name': 'Web (HTML, CSS, React, Vue, Tailwind)', 'tracks': ['html', 'html-css', 'react', 'vue', 'tailwind'], 'tools': ['chromium'], 'packages': ['chromium']},
     'ruby': {'name': 'Ruby', 'tracks': ['ruby'], 'tools': ['ruby', 'gem', 'cc', 'make'], 'packages': ['ruby', 'base-devel']},
     'rails': {'name': 'Ruby on Rails', 'tracks': ['rails'], 'tools': ['ruby', 'gem', 'cc', 'make'], 'packages': ['ruby', 'base-devel']},
+    'quickshell': {'name': 'Quickshell', 'tracks': ['quickshell'], 'tools': ['quickshell'], 'packages': ['quickshell']},
 }
 
 

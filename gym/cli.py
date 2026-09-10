@@ -92,7 +92,7 @@ def pick(client):
     show('\n  OMAGYM\n  Pick your next workout.\n')
     tracks = list(dict.fromkeys(p['track'] for p in projects))
     labels = {'go':'Go','rust':'Rust','javascript':'Modern JavaScript','react':'React','vue':'Vue',
-              'html':'HTML','html-css':'HTML + CSS','tailwind':'Tailwind','ruby':'Ruby','rails':'Ruby on Rails'}
+              'html':'HTML','html-css':'HTML + CSS','tailwind':'Tailwind','ruby':'Ruby','rails':'Ruby on Rails','quickshell':'Quickshell'}
     for i, track in enumerate(tracks, 1):
         module = next((p.get('module') for p in projects if p['track'] == track), None)
         suffix = ' · not enabled ('+module['command']+')' if module and not module['enabled'] else ''

@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CATALOG = json.loads((ROOT / 'curriculum/projects.json').read_text())
 MAX_FILE = 128_000
 MAX_SNAPSHOT = 600_000
-ALLOWED = {'.go', '.md', '.json', '.csv', '.txt', '.rs', '.toml', '.js', '.jsx', '.ts', '.tsx', '.vue', '.html', '.css', '.svg', '.rb', '.yml', '.yaml', '.lock'}
+ALLOWED = {'.qml', '.go', '.md', '.json', '.csv', '.txt', '.rs', '.toml', '.js', '.jsx', '.ts', '.tsx', '.vue', '.html', '.css', '.svg', '.rb', '.yml', '.yaml', '.lock'}
 
 class GymError(Exception):
     def __init__(self, message, status=400):
@@ -124,7 +124,7 @@ class Gym:
 
     def editable(self, name, id=None):
         if id and name in self.project(id)['testFiles']: return False
-        return name != 'go.mod' and not name.endswith('_test.go') and Path(name).name not in {'AGENTS.md','README.md','Cargo.toml','Gemfile','Gemfile.lock','package.json'} and not name.endswith(('.test.js','.spec.js','_test.rb'))
+        return name != 'go.mod' and not name.endswith('_test.go') and Path(name).name not in {'AGENTS.md','README.md','Cargo.toml','Gemfile','Gemfile.lock','package.json'} and not name.endswith(('.test.js','.spec.js','_test.rb','_test.qml'))
 
     def files(self, id):
         base = self.folder(id)
@@ -341,7 +341,7 @@ def validate_feedback(data,docs):
             raise GymError('Coach response did not match the feedback format.',502)
     text='\n'.join([data['feedback'],*data['observations'],*data['questions']])
     # Guard against obvious code; semantic no-solutions behavior is also prompt-enforced.
-    if len(text)>5000 or re.search(r'```|`|:=|=>|\bfunc\s+\w+\s*\(|\bpackage\s+\w+|\bfor\s+.*\{|\bdiff --git|\bfn\s+\w+\s*\(|\bdef\s+\w+|\bconst\s+\w+\s*=|<[A-Za-z][^>]*>',text):
+    if len(text)>5000 or re.search(r'```|`|:=|=>|\bfunc\s+\w+\s*\(|\bpackage\s+\w+|\bfor\s+.*\{|\bdiff --git|\bfn\s+\w+\s*\(|\bdef\s+\w+|\bconst\s+\w+\s*=|<[A-Za-z][^>]*>|\b(?:Item|Rectangle|Text|PanelWindow|FloatingWindow|SystemClock|Process)\s*\{|\bproperty\s+(?:int|bool|string|var|color|alias|real|date)\s+\w+\s*:',text):
         raise GymError('The coach response included code or exceeded the feedback limit. It was withheld; please ask again.',502)
     allowed={d['url']:d for d in docs}
     if not isinstance(data['documentation'],list) or not 1<=len(data['documentation'])<=3:

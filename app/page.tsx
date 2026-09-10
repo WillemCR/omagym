@@ -16,7 +16,7 @@ type FileEntry = { path: string; editable: boolean };
 type FileData = { content: string; revision: string; editable: boolean };
 type Feedback = { feedback: string; observations: string[]; questions: string[]; documentation: Doc[] };
 
-const TRACKS: Record<string, string> = { go: 'Go', rust: 'Rust', javascript: 'Modern JavaScript', react: 'React', vue: 'Vue', html: 'HTML', 'html-css': 'HTML + CSS', tailwind: 'Tailwind', ruby: 'Ruby', rails: 'Ruby on Rails' };
+const TRACKS: Record<string, string> = { go: 'Go', rust: 'Rust', javascript: 'Modern JavaScript', react: 'React', vue: 'Vue', html: 'HTML', 'html-css': 'HTML + CSS', tailwind: 'Tailwind', ruby: 'Ruby', rails: 'Ruby on Rails', quickshell: 'Quickshell' };
 type Generation = { id: string; status: string; message: string; projectId?: string; title?: string };
 
 async function api<T = Record<string, never>>(path: string, body?: object, method = 'POST'): Promise<T> {

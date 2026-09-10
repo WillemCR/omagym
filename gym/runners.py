@@ -8,6 +8,7 @@ import time
 from .core import ROOT, GymError, run_process
 
 TRACKS = {
+ 'quickshell': ('Quickshell','quickshell','Main.qml','https://quickshell.org/docs/v0.2.1/guide/introduction/'),
  'ruby': ('Ruby','ruby','main.rb','https://www.ruby-lang.org/en/documentation/'),
  'rails': ('Ruby on Rails','rails','app/models/model.rb','https://guides.rubyonrails.org/'),
  'go': ('Go','go','main.go','https://go.dev/doc/'),
@@ -43,6 +44,8 @@ def isolated(args, folder, runtime, env, timeout=120):
     if not node.is_relative_to('/usr'):
         cmd += ['--ro-bind',str(node.parent),str(node.parent)]
     cache=runtime/'runner-cache';cache.mkdir(parents=True,exist_ok=True)
+    if env.get('XDG_RUNTIME_DIR') == '/tmp/omagym-qml':
+        cmd += ['--perms', '0700', '--dir', '/tmp/omagym-qml']
     cmd += ['--bind',str(cache),str(cache),'--chdir',str(folder),'--'] + [str(a) for a in args]
     clean={'PATH':str(node.parent)+':/usr/bin','HOME':'/home/learner','LANG':'C.UTF-8',
            'TMPDIR':'/tmp','NO_COLOR':'1', **env}
@@ -84,6 +87,28 @@ def execute(project, files, folder, runtime):
             except ValueError:lines.append(line);continue
             if e.get('name'):tests[e['name']]=e['action'];lines.append(f"{e['action'].upper()} {e['name']} {e.get('detail','')}")
             if e.get('output'):lines.append(e['output'])
+    elif runner == 'quickshell':
+        quickshell = '/usr/bin/quickshell'
+        if not os.access(quickshell, os.X_OK):
+            raise GymError('Quickshell is not installed. Enable it with: omagym modules add quickshell', 503)
+        env = {'QT_QPA_PLATFORM': 'offscreen', 'QT_QUICK_BACKEND': 'software',
+               'XDG_RUNTIME_DIR': '/tmp/omagym-qml', 'XDG_CACHE_HOME': str(folder/'.qt-cache'),
+               'XDG_CONFIG_HOME': str(folder/'.qt-config'),
+               'OMAGYM_QML_ENTRY': (folder/project['entry']).as_uri(),
+               'OMAGYM_QML_SUITE': (folder/'challenge_test.qml').as_uri(),
+               'OMAGYM_QML_CHECKS': json.dumps(expected)}
+        rc, output = isolated([quickshell, '--no-color', '--path', str(ROOT/'gym/runtime/quickshell-runner.qml')],
+                              folder, runtime, env, timeout=90)
+        lines = output.splitlines()
+        for line in lines:
+            if 'OMAGYM_QML_RESULT ' not in line: continue
+            try:
+                event = json.loads(line.split('OMAGYM_QML_RESULT ', 1)[1])
+                if event['name'] in expected and event['action'] in ('pass', 'fail'):
+                    tests[event['name']] = event['action']
+            except (ValueError, KeyError, TypeError): pass
+        if 'OMAGYM_QML_COMPLETE' not in output:
+            rc = -1
     elif runner in ('ruby','rails'):
         ruby=shutil.which('ruby')
         if not ruby:raise GymError('Ruby is not installed.',503)

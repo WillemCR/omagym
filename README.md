@@ -49,6 +49,7 @@ omagym modules add go
 omagym modules add ruby         # Small local Ruby bundle, no Rails
 omagym modules add rails        # Rails also enables Ruby
 omagym modules add web
+omagym modules add quickshell
 omagym modules remove rails    # Keeps Ruby, dependencies and all your files
 ```
 
@@ -60,6 +61,7 @@ omagym modules remove rails    # Keeps Ruby, dependencies and all your files
 | `web` | System Chromium; covers HTML, CSS, React, Vue and Tailwind |
 | `ruby` | System Ruby 3.4+, build tools, and five locked local gems |
 | `rails` | System Ruby 3.4+, build tools, and the full local Rails bundle |
+| `quickshell` | System Quickshell with QtQuick; no extra gems or npm packages |
 
 The frontend and web tooling share the app's npm dependencies. Module selection controls optional system toolchain requirements and Ruby/Rails bundles; it does not split every JavaScript package into a separate download.
 
@@ -151,10 +153,27 @@ Desktop integration was exercised with Neovim, Foot, Chromium and Nautilus. Unfa
 | Tailwind | 3 |
 | Ruby | 3 |
 | Ruby on Rails | 3 |
+| Quickshell | 5 |
 
-All 47 built-in projects include a brief, unsolved starter, official documentation and behavioral tests. Go progresses from strings and maps to contexts, binary framing, middleware and transactions. Rails exercises use actual Rails components and in-memory SQLite. Web tests drive Chromium.
+All 52 built-in projects include a brief, unsolved starter, official documentation and behavioral tests. Go progresses from strings and maps to contexts, binary framing, middleware and transactions. Rails exercises use actual Rails components and in-memory SQLite. Web tests drive Chromium.
 
 The browser library also lets you **Create a project** from a prompt. Codex designs a starter, tests and a private reference candidate. Omagym checks that the reference passes, the starter fails meaningful assertions, and browser starters load correctly. Only the unsolved project is published into your local library; temporary reference files are removed. Generation can take several minutes and continues when the dialog is closed. The chosen scope is guidance, not a completion-time guarantee.
+
+## Learning Quickshell
+
+Enable it with `omagym modules add quickshell`, then choose Quickshell in the project picker or run `omagym start quickshell-01-badge`.
+
+Five projects progress through real QML and Quickshell components:
+
+1. **Reactive status badge** — properties, bindings, percentage display and resizing.
+2. **Clock with a testable time source** — SystemClock, formatting, precision and live updates.
+3. **Workspace switcher** — models, delegates, click signals and caller-owned selection.
+4. **Command status widget** — Process, stdout collection, errors and repeat runs.
+5. **Responsive practice panel** — adaptive layout and reusable components inside a supplied PanelWindow.
+
+Every project has an unsolved `Main.qml`, a standalone `shell.qml`, official Qt/Quickshell documentation links, and six behavioral checks. `omagym test` runs actual QML offscreen in Bubblewrap with a fresh component per case. No desktop, compositor or session-bus connection is exposed to the tests. The workspace project uses supplied data; the process project uses harmless local commands. Tested with Quickshell 0.3.1.
+
+For a visual check, run `quickshell --path shell.qml` in the project folder and stop it with Ctrl+C. This opens a separate practice window or panel; it does not replace your Omarchy configuration. Automated checks inspect live properties, bindings and signals; visual placement and actual pointer interaction remain manual checks. These projects do not use the browser Preview button.
 
 ## Feedback and privacy
 

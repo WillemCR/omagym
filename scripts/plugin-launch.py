@@ -183,7 +183,7 @@ def main():
     parser.add_argument('--setup-only', action='store_true', help='Prepare dependencies without opening a practice session')
     parser.add_argument('--no-packages', action='store_true', help='Compatibility flag; setup never installs system packages')
     parser.add_argument('--no-launcher', action='store_true', help='Keep command/application launchers unchanged (useful for isolated setup testing)')
-    parser.add_argument('--modules', help='Choose comma-separated modules: go,rust,javascript,web,ruby,rails (or none)')
+    parser.add_argument('--modules', help='Choose comma-separated modules: go,rust,javascript,web,ruby,rails,quickshell (or none)')
     parser.add_argument('--choose-modules', action='store_true', help='Choose which practice modules to enable')
     args = parser.parse_args()
     print('Omagym · independent community software\nNot officially supported or endorsed by DHH or Omacom.\n', flush=True)
