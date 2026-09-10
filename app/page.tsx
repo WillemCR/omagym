@@ -235,6 +235,7 @@ function Dashboard() {
       <p className="generator-footnote">The designer checks that the starter needs your work and a private reference passes the tests. Only the unsolved project is saved.</p>
     </DialogContent></Dialog>
     <footer><span><span className="online-dot"/> {TRACKS[track].toUpperCase()} TRAINING PATH</span><span>Write → Test → Reflect → Repeat</span><span>Ctrl / ⌘ S to save</span></footer>
+    <p className="community-notice">Independent community project. Not officially supported or endorsed by DHH or Omacom.</p>
   </main>;
 }
 function DocLinks({ docs }: { docs: Doc[] }) { return <div className="doc-links">{docs.map(d=><a key={d.url} href={d.url} target="_blank" rel="noreferrer"><BookOpen size={15}/><span>{d.title}</span><span>↗</span></a>)}</div>; }

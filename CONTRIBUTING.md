@@ -43,3 +43,9 @@ Use temporary projects for destructive fixtures. Keep any private local verifica
 ## Dependency maintenance
 
 `package.json` overrides `sharp` to 0.35.4 because the current Cloudflare tooling pins an older release affected by GHSA-rgj7-g3m4-5g8c. Recheck the upstream dependency and npm audit before removing this override. Keep React, React DOM and React Server DOM on matching versions.
+
+## Omarchy plugin
+
+`manifest.json` and `plugin/OmagymWidget.qml` provide the native bar launcher. The first-click setup in `scripts/plugin-launch.py` maintains a separate app checkout under the user data directory; do not put dependencies or learner data in the removable plugin folder. Plugin sources must remain free of symlinks for Omarchy’s validator.
+
+Validate a clean source export with `omarchy plugin validate <folder>`. The regular regression suite exercises setup ownership, update preservation, busy-backend refusal and concurrent installer locking. On Omarchy, additionally load the widget in Quickshell and run setup in an isolated absolute `XDG_DATA_HOME` with `--setup-only --no-packages --no-launcher` before testing on the desktop. Native plugin validation and Quickshell integration are local checks, not part of the Ubuntu CI job.

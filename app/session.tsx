@@ -97,5 +97,6 @@ export default function Session({projectId}: {projectId: string}) {
       <div className="session-terminal-tip"><Terminal size={18}/><div><strong>Prefer your terminal?</strong><p><code>omagym brief</code> · <code>omagym test</code> · <code>omagym coach</code></p></div></div>
     </div>
     <footer className="session-footer"><span>Write <ChevronRight/> Test <ChevronRight/> Reflect <ChevronRight/> Repeat</span><a href="/" target="_blank" rel="noreferrer">Project library <ArrowUpRight size={13}/></a></footer>
+    <p className="community-notice">Independent community project. Not officially supported or endorsed by DHH or Omacom.</p>
   </main>;
 }

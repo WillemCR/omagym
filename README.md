@@ -6,7 +6,37 @@ Omagym opens a dedicated Omarchy workspace with your default editor, terminal, a
 
 Prefer the terminal? Every practice operation also works from the CLI. A full browser dashboard includes a file manager and editor.
 
-**Status:** early, usable release for Linux. Desktop integration targets Omarchy/Hyprland; this is a standalone companion with a user-local launcher. Omarchy marketplace packaging is not included yet. It is an independent project, not an official Omarchy product.
+**Omagym is an independent community project. It is not affiliated with, officially supported by, or endorsed by DHH (David Heinemeier Hansson) or Omacom.** Please report Omagym issues in [this repository](https://github.com/WillemCR/omagym/issues).
+
+## Install as an Omarchy plugin
+
+On an x86-64 Omarchy laptop with the Quickshell plugin system:
+
+```sh
+omarchy plugin add https://github.com/WillemCR/omagym.git --enable
+```
+
+Click **<> Omagym** in your bar. First launch opens your default terminal, offers to install any missing system packages through Omarchy, installs locked app dependencies, builds the dashboard, and opens the language/project picker. Allow several minutes for this first setup. It requires internet access for dependency downloads, Node 24+ (tested with 25.2.1), system Ruby 3.4+, and working Bubblewrap user namespaces. It never signs you into Codex; use your existing installed, signed-in agent for coaching and project generation.
+
+For terminal-driven setup instead of clicking the widget:
+
+```sh
+python3 ~/.config/omarchy/plugins/willemcr.omagym/scripts/plugin-launch.py --setup-only
+omagym start 01-wordstats
+```
+
+The plugin source stays under `~/.config/omarchy/plugins/willemcr.omagym`. The runnable app, dependencies, workspaces and generated exercises stay separately in `${XDG_DATA_HOME:-~/.local/share}/omagym/app`. The app launcher is installed under `~/.local`; an existing Omagym launcher from another checkout is preserved instead of overwritten.
+
+```sh
+omarchy plugin update willemcr.omagym  # Click the widget afterward to apply app updates
+omarchy plugin disable willemcr.omagym
+omarchy plugin enable willemcr.omagym
+omarchy plugin remove willemcr.omagym
+```
+
+Updating fast-forwards the managed app to the plugin's reviewed commit and rebuilds dependencies when needed. It refuses to overwrite app source edits or interrupt a busy owned backend. Saved learner work is preserved. Removing the plugin removes its bar integration; it keeps the app, its launchers and your practice data. To remove those launchers, run `python3 ~/.local/share/omagym/app/scripts/install-desktop.py --uninstall` (adjust for a custom `XDG_DATA_HOME`). Back up `workspaces/` and `generated/` before any manual app-directory removal.
+
+This is a direct Git installation; no marketplace listing or upstream approval is required. If `omarchy plugin` is unavailable on your Omarchy version, use the manual setup below.
 
 ## Requirements
 

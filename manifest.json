@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "willemcr.omagym",
+  "name": "Omagym",
+  "version": "0.1.0",
+  "author": "WillemCR",
+  "description": "Guided coding practice in your own tools. Independent community project; not officially supported or endorsed by DHH or Omacom.",
+  "homepage": "https://github.com/WillemCR/omagym",
+  "license": "MIT",
+  "kinds": ["bar-widget"],
+  "entryPoints": {"barWidget": "plugin/OmagymWidget.qml"},
+  "barWidget": {
+    "displayName": "Omagym",
+    "description": "Open coding practice; first click sets up the local application in a terminal",
+    "category": "Tools",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}

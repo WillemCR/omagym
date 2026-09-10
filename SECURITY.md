@@ -2,6 +2,10 @@
 
 Omagym is a local, single-user learning tool. Keep its HTTP listeners on loopback. Do not expose it directly to a LAN or the internet: the backend has no multi-user authentication or authorization model.
 
+## Plugin setup
+
+The Omarchy bar widget runs inside the unsandboxed shell and starts a terminal only when clicked. Initial setup installs the app and its locked dependencies outside the plugin directory. Requested system packages are shown for confirmation before invoking Omarchy’s package installer. Dependency installation and the app backend run as your normal user; exercise execution uses the separate isolation described below. Review plugin updates before enabling them.
+
 ## Execution boundaries
 
 Exercise code runs through Bubblewrap with a private network namespace and no host home directory. System tools, `/etc`, runtime helpers and installed dependencies are mounted read-only; temporary exercise files and runner caches are writable. Isolation is required and failures do not fall back to unrestricted execution.
