@@ -5,7 +5,7 @@ Build a compact percentage badge that responds to changing data and available sp
 - Main.qml is an Item with title (string, initially CPU), percent (int, initially 0), and warningAt (int, initially 80). Its initial width is 240 and height is 40.
 - A Text named label displays title followed by a colon, a space, the percentage clamped to 0–100, and %. Changing title or percent must update it immediately.
 - A Rectangle named meter has width equal to the component width multiplied by the clamped percentage divided by 100. Resizing the component updates the meter.
-- The meter color is #ef9a9a when the clamped percentage is at least warningAt, otherwise #a6d87b. The label must remain readable on the dark practice window.
+- The meter color is #ef9a9a when the clamped percentage is at least warningAt, otherwise #a6d87b. The label must remain readable on the dark practice window: visible, fully opaque and light-colored (HSL lightness at least 0.6).
 
 Start in `Main.qml`. The starter loads but deliberately does not meet the requirements. Keep the public properties, signals and object names used by the tests. You may add local QML components.
 

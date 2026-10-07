@@ -17,9 +17,13 @@ func TestValues(t *testing.T) {
 	if e != nil || c.Address != "a=b" || c.Workers != 1 || c.Debug {
 		t.Fatal(c, e)
 	}
+	c, e = Parse("workers=8")
+	if e != nil || c != (Config{"127.0.0.1:8080", 8, false}) {
+		t.Fatalf("partial: %#v %v", c, e)
+	}
 }
 func TestRejectedConfig(t *testing.T) {
-	for _, s := range []string{"workers=0", "workers=65", "workers=one", "address= ", "debug=TRUE", "debug=1", "unknown=x", "workers=2\nworkers=3", "bad", "=x"} {
+	for _, s := range []string{"workers=0", "workers=65", "workers=one", "address= ", "debug=TRUE", "debug=1", "unknown=x", "workers=2\nworkers=3", "workers=4\nworkers=3", "debug=false\ndebug=true", "address=127.0.0.1:8080\naddress=x", "bad", "=x"} {
 		c, e := Parse(s)
 		if e == nil || c != (Config{}) {
 			t.Errorf("accepted %q: %#v %v", s, c, e)

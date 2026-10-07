@@ -15,13 +15,13 @@ class QuotesTest < Minitest::Test
     assert_equal([200,{'cents'=>400,'currency'=>'EUR'}],request({quote:{weight_grams:1,zone:'local'}}))
   end
   def test_weight_rounding_and_zones
-    [[1000,'local',400],[1001,'local',500],[20000,'international',2900]].each { |weight,zone,cents| assert_equal([200,{'cents'=>cents,'currency'=>'EUR'}],request({quote:{weight_grams:weight,zone:zone}})) }
+    [[1000,'local',400],[1001,'local',500],[20000,'local',2300],[1,'international',1000],[1000,'international',1000],[1001,'international',1100],[20000,'international',2900]].each { |weight,zone,cents| assert_equal([200,{'cents'=>cents,'currency'=>'EUR'}],request({quote:{weight_grams:weight,zone:zone}})) }
   end
   def test_missing_quote_object
     [{},{quote:nil},{quote:'bad'},{quote:[]}].each { |body| assert_equal([400,{'error'=>'quote_required'}],request(body)) }
   end
   def test_invalid_weight
-    [nil,0,-1,20001,1.5,'1000',true].each { |weight| assert_equal([422,{'error'=>'invalid_quote'}],request({quote:{weight_grams:weight,zone:'local'}})) }
+    [nil,0,-1,20001,1.5,1000.0,'1000',true].each { |weight| assert_equal([422,{'error'=>'invalid_quote'}],request({quote:{weight_grams:weight,zone:'local'}})) }
   end
   def test_invalid_zone
     [nil,'LOCAL','elsewhere',1].each { |zone| assert_equal([422,{'error'=>'invalid_quote'}],request({quote:{weight_grams:100,zone:zone}})) };assert_equal([422,{'error'=>'invalid_quote'}],request({quote:{}}))

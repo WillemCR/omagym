@@ -6,7 +6,7 @@
     "entry": "main.go",
     "title": "Log desk",
     "level": "06 \u00b7 Streaming input",
-    "summary": "Summarize a stream of application log events without keeping the whole log in memory.",
+    "summary": "Summarize a stream of application log events line by line.",
     "skills": [
       "bufio",
       "io.Reader",
@@ -16,7 +16,8 @@
       "Implement Analyze(r io.Reader) (Report, error) in package challenge. Report has Counts map[string]int and LastError string.",
       "Each nonblank line has LEVEL|message. Split at the first |, trim both parts, and allow INFO, WARN and ERROR only. Additional | characters belong to the message.",
       "Count each level and remember the last ERROR message. Empty messages, unknown levels or missing delimiters return a nil Counts map and an error.",
-      "Ignore whitespace-only lines. Empty input succeeds with an empty map. Propagate reader errors; inputs have lines shorter than 32 KiB."
+      "Ignore whitespace-only lines. Empty input succeeds with an empty map. Inputs have lines shorter than 32 KiB.",
+      "Reader errors also return a nil Counts map; return or wrap the reader's error so errors.Is finds it."
     ],
     "docs": [
       {
@@ -134,7 +135,7 @@
     ],
     "requirements": [
       "Implement New(ttl time.Duration) (*Cache,error), (*Cache).Set(key,value string, now time.Time), and (*Cache).Get(key string, now time.Time) (string,bool).",
-      "New requires a positive TTL. Each Set stores a value until now+ttl and replaces any existing value and expiry for that key.",
+      "New requires a positive TTL; otherwise it returns nil and an error. Each Set stores a value until now+ttl and replaces any existing value and expiry for that key.",
       "Get succeeds only before the expiry instant. At or after expiry it returns empty string,false. A missing key does the same; empty keys and values are allowed.",
       "Different caches are independent. Set and Get must be safe for concurrent use. Tests pass explicit times; do not sleep or consult the wall clock."
     ],
@@ -173,7 +174,7 @@
     ],
     "requirements": [
       "Implement New[T any](capacity int) (*Ring[T],error), Push(value T) (T,bool), Pop() (T,bool), and Len() int on Ring[T].",
-      "Capacity must be positive. Push appends a new newest item; when full it evicts and returns the oldest item with true. Otherwise return the zero value of T,false.",
+      "Capacity must be positive; otherwise New returns nil and an error. Push appends a new newest item; when full it evicts and returns the oldest item with true. Otherwise return the zero value of T,false.",
       "Pop removes and returns the oldest item with true; an empty ring returns the zero value,false. Len reports the current number of items.",
       "Support arbitrary element types and repeated wraparound. Separate rings must not share state. Concurrent access is not required."
     ],
@@ -328,7 +329,7 @@
     "requirements": [
       "Implement Render(source string,data map[string]string) (string,error) using Go HTML template semantics.",
       "Support ordinary field references such as {{.Name}}, conditionals, and standard built-in template functions. Escape inserted values according to their HTML context.",
-      "A missing map key, invalid template syntax, or execution failure returns empty string and an error, never partial rendered output.",
+      "A missing map key in a field reference such as {{.Missing}}, invalid template syntax, or execution failure returns empty string and an error, never partial rendered output. Built-in functions such as index keep their standard behavior.",
       "An empty template succeeds with an empty string. Preserve ordinary source whitespace. Do not mutate data or treat values as trusted HTML."
     ],
     "docs": [
@@ -425,6 +426,7 @@
     "checks": [
       "TestAuthorized",
       "TestDenied",
+      "TestIndependentHandlers",
       "TestConcurrentMiddleware"
     ]
   },
@@ -517,9 +519,9 @@
     ],
     "requirements": [
       "Implement NewBus() *Bus, (*Bus).Subscribe(topic string,fn func(string)) func(), and (*Bus).Publish(topic,message string).",
-      "Subscribe registers a callback and returns an idempotent unsubscribe function. A nil callback registers nothing and returns a callable no-op. Empty topics and messages are valid.",
+      "Subscribe registers a callback and returns an idempotent unsubscribe function. Each call is a separate registration, even for the same function, and its unsubscribe removes only that registration. A nil callback registers nothing and returns a callable no-op. Empty topics and messages are valid.",
       "Publish synchronously calls each subscription present at the start of that publish exactly once, in subscription order, only for the matching topic.",
-      "Subscriptions added or removed during callbacks affect later publishes, not the current delivery snapshot. Callbacks may subscribe, unsubscribe or publish without deadlock.",
+      "Subscriptions added or removed during callbacks affect later publishes, not the current delivery snapshot. Callbacks may subscribe, unsubscribe or publish without deadlock; a nested Publish finishes its deliveries before returning.",
       "Bus operations are safe concurrently. Different simultaneous Publish calls may invoke the same callback concurrently; callbacks are responsible for their own shared data. Different buses are independent."
     ],
     "docs": [
@@ -557,10 +559,10 @@
     ],
     "requirements": [
       "Implement NewLedger(initial map[string]int64) (*Ledger,error), (*Ledger).Apply(batch []Transfer) error, and (*Ledger).Snapshot() map[string]int64. Transfer has From,To string and Cents int64.",
-      "NewLedger rejects empty account names and negative balances, and copies the input map. Nil input creates an empty ledger.",
+      "NewLedger rejects empty account names and negative balances by returning a nil ledger and an error, and copies the input map. Nil input creates an empty ledger.",
       "Apply validates and applies transfers in order against tentative balances. Both accounts must exist, From must differ from To, Cents must be positive, the sender must have enough funds and the recipient balance must not overflow int64.",
       "If any transfer fails, roll back the whole batch. Empty batches succeed. Later transfers may spend funds received earlier in the same batch.",
-      "Snapshot returns an independent copy. All methods must be safe concurrently and each Apply batch must be atomic relative to other operations."
+      "Snapshot returns an independent copy. Each ledger is an independent instance; creating or changing one never affects another. All methods must be safe concurrently and each Apply batch must be atomic relative to other operations."
     ],
     "docs": [
       {

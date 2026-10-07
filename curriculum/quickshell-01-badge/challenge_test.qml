@@ -3,7 +3,8 @@ import Quickshell
 
 QtObject {
     function test_initial_label(s, t) {
-        t.equal(t.find(s, "label").text, "CPU: 0%");
+        var label = t.find(s, "label"); t.equal(label.text, "CPU: 0%");
+        t.ok(label.visible && label.opacity === 1, "Label must be visible and fully opaque"); t.ok(label.color.a === 1 && label.color.hslLightness >= 0.6, "Label color must be opaque and light (HSL lightness at least 0.6)");
     }
     function test_live_text(s, t) {
         s.title = "Memory"; s.percent = 42; t.equal(t.find(s, "label").text, "Memory: 42%");
@@ -15,7 +16,7 @@ QtObject {
         s.percent = 79; t.equal(String(t.find(s,"meter").color), "#a6d87b"); s.percent = 80; t.equal(String(t.find(s,"meter").color), "#ef9a9a");
     }
     function test_threshold_binding(s, t) {
-        s.percent = 40; s.warningAt = 40; t.equal(String(t.find(s,"meter").color), "#ef9a9a"); s.warningAt = 41; t.equal(String(t.find(s,"meter").color), "#a6d87b");
+        s.percent = 40; s.warningAt = 40; t.equal(String(t.find(s,"meter").color), "#ef9a9a"); s.warningAt = 41; t.equal(String(t.find(s,"meter").color), "#a6d87b"); s.percent = 130; s.warningAt = 110; t.equal(String(t.find(s,"meter").color), "#a6d87b", "Compare the clamped percentage"); s.percent = -5; s.warningAt = 0; t.equal(String(t.find(s,"meter").color), "#ef9a9a", "Compare the clamped percentage");
     }
     function test_resize_binding(s, t) {
         s.percent = 25; s.width = 400; t.equal(t.find(s,"meter").width, 100); s.width = 200; t.equal(t.find(s,"meter").width, 50);

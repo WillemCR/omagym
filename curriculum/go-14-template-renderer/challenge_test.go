@@ -18,10 +18,18 @@ func TestHTMLRendering(t *testing.T) {
 	if e != nil || strings.Contains(got, "javascript:") || !strings.Contains(got, "#ZgotmplZ") {
 		t.Fatal("unsafe URL was not filtered", got, e)
 	}
+	got, e = Render(`<script>let x={{.X}};</script><p style="color: {{.C}}">{{.X}}</p>`, map[string]string{"X": "alert(1)", "C": "red;background:url(evil)"})
+	if e != nil || got != `<script>let x="alert(1)";</script><p style="color: ZgotmplZ">alert(1)</p>` {
+		t.Fatal("values were not escaped for their script and CSS contexts", got, e)
+	}
 }
 func TestTemplateLogic(t *testing.T) {
 	s, e := Render(" Hi {{if .Name}}{{.Name}}{{else}}friend{{end}}! ", map[string]string{"Name": "Ada"})
 	if e != nil || s != " Hi Ada! " {
+		t.Fatal(s, e)
+	}
+	s, e = Render("{{if .Name}}{{.Name}}{{else}}friend{{end}} {{len .Name}} {{printf \"%q\" .Name}}", map[string]string{"Name": ""})
+	if e != nil || s != "friend 0 &#34;&#34;" {
 		t.Fatal(s, e)
 	}
 	s, e = Render("", nil)

@@ -5,7 +5,7 @@ Build a reusable workspace strip using supplied data, without talking to the com
 - Main.qml is an Item with workspaces (array of distinct positive integer IDs, initially [1,2,3]), activeId (int, initially 1), and signal requested(int workspaceId).
 - Render one Rectangle per ID, in input order, in a horizontal row. Each is named workspace-ID and contains a Text named workspace-label-ID showing the ID, plus a MouseArea named workspace-click-ID.
 - The active workspace rectangle is #a6d87b; all others are #344653. Changing activeId updates the colors, including IDs not present in the model (none active).
-- Clicking a delegate emits requested with its own ID exactly once. It must not change activeId: the caller owns selection state.
+- Clicking a delegate (tests deliver a real left-button click at its centre) emits requested with its own ID exactly once. It must not change activeId: the caller owns selection state.
 - Replacing workspaces updates the delegates. Nonconsecutive IDs such as [2,7,11] work. An empty array removes all delegates. Do not call Hyprland or any desktop command.
 
 Start in `Main.qml`. The starter loads but deliberately does not meet the requirements. Keep the public properties, signals and object names used by the tests. You may add local QML components.

@@ -10,7 +10,7 @@ import (
 
 func TestRoundTrip(t *testing.T) {
 	p := filepath.Join(t.TempDir(), "tasks.json")
-	want := []Task{{1, "Learn Go", false}, {2, "Write tests", true}}
+	want := []Task{{2, " Write tests ", true}, {1, "Learn Go", false}}
 	if err := Save(p, want); err != nil {
 		t.Fatal(err)
 	}
@@ -21,6 +21,10 @@ func TestRoundTrip(t *testing.T) {
 	b, _ := os.ReadFile(p)
 	if !strings.Contains(string(b), `"title"`) {
 		t.Error("use lowercase JSON keys")
+	}
+	os.WriteFile(p, []byte(`[{"id":3,"title":"Read","done":true}]`), 0600)
+	if got, err := Load(p); err != nil || !reflect.DeepEqual(got, []Task{{3, "Read", true}}) {
+		t.Errorf("load hand-written file got %v, %v", got, err)
 	}
 }
 func TestMissing(t *testing.T) {
@@ -40,20 +44,21 @@ func TestEmpty(t *testing.T) {
 	}
 }
 func TestInvalidTasks(t *testing.T) {
-	for _, tasks := range [][]Task{{{0, "x", false}}, {{1, " \t", false}}, {{1, "x", false}, {1, "y", true}}} {
+	const keep = `[{"id":7,"title":"keep","done":true}]`
+	for _, tasks := range [][]Task{{{0, "x", false}}, {{-1, "x", false}}, {{1, " \t", false}}, {{1, "x", false}, {1, "y", true}}} {
 		p := filepath.Join(t.TempDir(), "tasks.json")
-		os.WriteFile(p, []byte("[]"), 0600)
+		os.WriteFile(p, []byte(keep), 0600)
 		if Save(p, tasks) == nil {
 			t.Error("invalid tasks accepted")
 		}
 		b, _ := os.ReadFile(p)
-		if string(b) != "[]" {
+		if string(b) != keep {
 			t.Error("invalid input changed file")
 		}
 	}
 }
 func TestInvalidFiles(t *testing.T) {
-	for _, s := range []string{`{`, `[] []`, `[{"id":0,"title":"x"}]`, `[{"id":1,"title":" "}]`, `[{"id":1,"title":"x"},{"id":1,"title":"y"}]`} {
+	for _, s := range []string{`{`, `[] []`, `[] {`, `[{"id":0,"title":"x"}]`, `[{"id":-1,"title":"x"}]`, `[{"id":1,"title":" "}]`, `[{"id":1,"title":"x"},{"id":1,"title":"y"}]`} {
 		p := filepath.Join(t.TempDir(), "tasks.json")
 		os.WriteFile(p, []byte(s), 0600)
 		if _, err := Load(p); err == nil {

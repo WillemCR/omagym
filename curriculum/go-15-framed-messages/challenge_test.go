@@ -54,13 +54,60 @@ func TestMalformedFrames(t *testing.T) {
 	}
 	var h [4]byte
 	binary.BigEndian.PutUint32(h[:], 65537)
-	if p, e := ReadFrame(bytes.NewReader(h[:])); e == nil || p != nil {
-		t.Fatal("oversize")
+	for _, n := range []uint32{65537, 1 << 31, 1<<32 - 1} {
+		binary.BigEndian.PutUint32(h[:], n)
+		body := &trapReader{}
+		if p, e := ReadFrame(io.MultiReader(bytes.NewReader(h[:]), body)); e == nil || p != nil || body.reads != 0 {
+			t.Fatal("oversize frame accepted or body read", n, len(p), e, body.reads)
+		}
 	}
 	var b bytes.Buffer
 	if e := WriteFrame(&b, make([]byte, 65537)); e == nil || b.Len() != 0 {
 		t.Fatal("oversize write")
 	}
+}
+
+// trapReader stands in for an oversized body: it counts read attempts and supplies up to 1 MiB.
+type trapReader struct{ reads, sent int }
+
+func (r *trapReader) Read(p []byte) (int, error) {
+	r.reads++
+	if r.sent >= 1<<20 {
+		return 0, io.EOF
+	}
+	n := min(len(p), 1<<20-r.sent)
+	r.sent += n
+	return n, nil
+}
+
+// limitWriter accepts the first limit bytes, then reports err (nil means a silent short write).
+type limitWriter struct {
+	limit int
+	err   error
+	buf   []byte
+}
+
+func (w *limitWriter) Write(p []byte) (int, error) {
+	n := min(len(p), w.limit-len(w.buf))
+	w.buf = append(w.buf, p[:n]...)
+	if n < len(p) {
+		return n, w.err
+	}
+	return n, nil
+}
+
+// fullErrWriter accepts every byte but reports err once byte offset at has been written.
+type fullErrWriter struct {
+	at, n int
+	err   error
+}
+
+func (w *fullErrWriter) Write(p []byte) (int, error) {
+	w.n += len(p)
+	if w.n > w.at {
+		return len(p), w.err
+	}
+	return len(p), nil
 }
 
 type shortWriter struct{}
@@ -77,5 +124,18 @@ func TestWriterFailure(t *testing.T) {
 	sentinel := errors.New("write failed")
 	if e := WriteFrame(errorWriter{sentinel}, nil); !errors.Is(e, sentinel) {
 		t.Fatal(e)
+	}
+	for _, limit := range []int{4, 5} {
+		if e := WriteFrame(&limitWriter{limit: limit, err: sentinel}, []byte("xyz")); !errors.Is(e, sentinel) {
+			t.Fatal("payload write error ignored", limit, e)
+		}
+		if e := WriteFrame(&limitWriter{limit: limit}, []byte("xyz")); !errors.Is(e, io.ErrShortWrite) {
+			t.Fatal("short payload write ignored", limit, e)
+		}
+	}
+	for _, at := range []int{0, 4} {
+		if e := WriteFrame(&fullErrWriter{at: at, err: sentinel}, []byte("xyz")); !errors.Is(e, sentinel) {
+			t.Fatal("error returned with a full byte count was ignored", at, e)
+		}
 	}
 }

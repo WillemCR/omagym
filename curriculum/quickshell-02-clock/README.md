@@ -3,7 +3,7 @@
 Make a live clock with predictable formatting and an optional time override.
 
 - Main.qml is an Item with use24Hours (bool, true), showSeconds (bool, false), overrideTime (var, null), and clock, an alias to a real enabled SystemClock.
-- A Text named clockLabel shows overrideTime when it is a Date; when overrideTime is null it shows clock.date in local time.
+- A Text named clockLabel shows overrideTime when it is a Date; when overrideTime is null it shows clock.date in local time and updates on every clock tick.
 - 24-hour output uses two-digit hours and minutes: 09:05. 12-hour output uses unpadded hours and uppercase AM/PM: 9:05 AM. Midnight is 12:00 AM and noon is 12:00 PM.
 - When showSeconds is true, append two-digit seconds before AM/PM if present. Every input property remains reactive.
 - Use SystemClock.Minutes precision when seconds are hidden and SystemClock.Seconds when shown. Removing overrideTime returns the display to the live clock.

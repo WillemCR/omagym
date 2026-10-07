@@ -3,6 +3,7 @@ package challenge
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -20,11 +21,16 @@ func TestRetrySuccess(t *testing.T) {
 	}
 }
 func TestFinalError(t *testing.T) {
-	last := errors.New("last")
-	n := 0
-	e := Retry(context.Background(), 3, func() error { n++; return last })
-	if !errors.Is(e, last) || n != 3 {
-		t.Fatal(n, e)
+	for _, attempts := range []int{1, 2, 3, 5} {
+		var errs []error
+		e := Retry(context.Background(), attempts, func() error {
+			err := fmt.Errorf("failure %d", len(errs)+1)
+			errs = append(errs, err)
+			return err
+		})
+		if len(errs) != attempts || e != errs[len(errs)-1] {
+			t.Fatal(attempts, len(errs), e)
+		}
 	}
 }
 func TestCancellation(t *testing.T) {

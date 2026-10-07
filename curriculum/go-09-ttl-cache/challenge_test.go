@@ -20,6 +20,15 @@ func TestExpiry(t *testing.T) {
 	if v, ok := c.Get("a", now.Add(time.Minute)); ok || v != "" {
 		t.Fatal("expiry boundary", v, ok)
 	}
+	c.Set("b", "x", now)
+	c.Set("c", "y", now.Add(30*time.Second))
+	later := now.Add(time.Minute + time.Second)
+	if v, ok := c.Get("b", later); ok || v != "" {
+		t.Fatal("each key expires on its own", v, ok)
+	}
+	if v, ok := c.Get("c", later); !ok || v != "y" {
+		t.Fatal("each key has its own expiry", v, ok)
+	}
 }
 func TestReplacementAndIsolation(t *testing.T) {
 	a, _ := New(time.Second)
@@ -50,6 +59,7 @@ func TestConcurrentCache(t *testing.T) {
 	c, _ := New(time.Hour)
 	var wg sync.WaitGroup
 	now := time.Unix(0, 0)
+	c.Set("shared", "start", now)
 	for i := 0; i < 32; i++ {
 		wg.Add(1)
 		go func(i int) {
@@ -59,6 +69,12 @@ func TestConcurrentCache(t *testing.T) {
 				c.Set(k, k, now)
 				if v, ok := c.Get(k, now); !ok || v != k {
 					t.Errorf("lost %s", k)
+					return
+				}
+				c.Set("shared", k, now)
+				if _, ok := c.Get("shared", now); !ok {
+					t.Error("lost shared key")
+					return
 				}
 			}
 		}(i)

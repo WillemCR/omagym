@@ -5,7 +5,7 @@ Assemble a useful responsive dashboard shell with Tailwind utilities.
 ## Your brief
 
 - Keep .shell containing aside and main, Workspace navigation, and .stats containing three article cards. Style with Tailwind utilities.
-- At 1200px, aside is 240px wide to the left of main, both aligned at the top; main fills the remaining shell width. At 390px, aside is above main and both fill the available width.
+- At 1200px, aside is 240px wide to the left of main, both aligned at the top; main fills the remaining shell width. At 390px, aside is above main and both span the full viewport width.
 - Use 24px padding in main. Statistics cards form three equal columns with 16px gaps on desktop and one column with 16px gaps on mobile.
 - The shell has at least viewport height, each stats card has 16px padding and 8px radius, and neither layout causes horizontal page overflow.
 

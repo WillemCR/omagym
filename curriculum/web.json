@@ -92,7 +92,7 @@
       "Provide a Task input and Add task button. Trim submissions, reject blank text, append a task and clear the input. Start empty when storage is empty.",
       "Each task is a list item in a list named Tasks, with a checkbox labelled by its task text and a Delete <task text> button. Duplicate text is allowed; task identities remain independent.",
       "Show a status named Remaining with N remaining. Checkbox toggles update the count; deleting removes only the chosen task.",
-      "Persist tasks and completion under localStorage key omagym-weekend-tasks so reload restores them. A malformed value at that key must recover to an empty usable board."
+      "Persist tasks and completion under localStorage key omagym-weekend-tasks so reload restores them. A malformed value at that key (invalid JSON, or JSON that is not a list of tasks) must recover to an empty usable board."
     ],
     "docs": [
       {
@@ -290,7 +290,7 @@
     "requirements": [
       "Create a header (banner) containing navigation named Main with links Notes \u2192 #notes and Schedule \u2192 #schedule; a main element id notes; and a footer (contentinfo).",
       "Main contains one article, one h1 named Learning in public, and h2 headings Notes and Schedule in that order. Give the Schedule section id schedule so the navigation link reaches it.",
-      "Inside the article, show a time element with datetime 2026-09-12 and visible date 12 September 2026. Include a figure containing an img with meaningful alt Desk with a notebook (a local inline SVG data URL is fine) and figcaption Weekend setup.",
+      "Inside the article, show a time element with datetime 2026-09-12 and visible date 12 September 2026, and a figure containing an img with meaningful alt Desk with a notebook (a local inline SVG data URL is fine) and figcaption Weekend setup.",
       "Provide a table with caption Weekend schedule, column headers Day and Focus (scope col), row headers Saturday and Sunday (scope row), and their data cells Build and Reflect respectively."
     ],
     "docs": [
@@ -492,7 +492,7 @@
     "requirements": [
       "Use Tailwind classes in index.html; styles.css already imports Tailwind. Preserve article.profile and .avatar so measurements can find them.",
       "Center the card horizontally and vertically inside a main that is at least the viewport height. Card width is 320px, with 24px padding, 16px corner radius and a visible box shadow.",
-      "The avatar is a 64px circle. The h1 uses 24px font size and at least 600 weight. The View projects link is a block, fills the card content width and is at least 44px tall.",
+      "The avatar is a 64px circle. The h1 uses 24px font size and at least 600 weight. The View projects link points to #projects, is a block, fills the card content width and is at least 44px tall.",
       "At viewport widths 390px and 1200px the card stays inside the viewport with no horizontal overflow. Choose your own colors."
     ],
     "docs": [
@@ -567,7 +567,7 @@
     ],
     "requirements": [
       "Keep .shell containing aside and main, Workspace navigation, and .stats containing three article cards. Style with Tailwind utilities.",
-      "At 1200px, aside is 240px wide to the left of main, both aligned at the top; main fills the remaining shell width. At 390px, aside is above main and both fill the available width.",
+      "At 1200px, aside is 240px wide to the left of main, both aligned at the top; main fills the remaining shell width. At 390px, aside is above main and both span the full viewport width.",
       "Use 24px padding in main. Statistics cards form three equal columns with 16px gaps on desktop and one column with 16px gaps on mobile.",
       "The shell has at least viewport height, each stats card has 16px padding and 8px radius, and neither layout causes horizontal page overflow."
     ],

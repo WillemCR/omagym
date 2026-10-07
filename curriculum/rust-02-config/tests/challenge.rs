@@ -7,7 +7,7 @@ fn trims_and_preserves_values() { let expected = BTreeMap::from([("HOST".into(),
 #[test]
 fn missing_separator_has_line() { assert_eq!(parse_config("# comment\n\nvalid=yes\nbroken"), Err(ConfigError { line: 4, kind: ErrorKind::InvalidLine })); }
 #[test]
-fn invalid_keys() { for key in ["", "2host", "two words", "host-name", "é", "a.b"] { assert_eq!(parse_config(&format!("ok=yes\n{key}=x")), Err(ConfigError { line: 2, kind: ErrorKind::InvalidKey })); } }
+fn invalid_keys() { for key in ["", "2host", "two words", "host-name", "é", "a.b", "aé", "a٢", "_ x"] { assert_eq!(parse_config(&format!("ok=yes\n{key}=x")), Err(ConfigError { line: 2, kind: ErrorKind::InvalidKey })); } }
 #[test]
 fn duplicate_and_case_sensitivity() { assert_eq!(parse_config("a=one\na=two"), Err(ConfigError { line: 2, kind: ErrorKind::DuplicateKey })); assert_eq!(parse_config("a=one\nA=two").unwrap().len(), 2); }
 #[test]

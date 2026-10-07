@@ -7,9 +7,18 @@ test("Tabs start with one selected panel", async ({ page }) => {
 });
 
 test("Tabs respond to clicks and expose selection", async ({ page }) => {
-  await page.getByRole('tab',{name:'Examples',exact:true}).click();await expect(page.getByRole('tabpanel',{name:'Examples',exact:true})).toHaveText('Practice makes progress');await expect(page.getByRole('tab',{name:'Examples',exact:true})).toHaveAttribute('aria-selected','true');await expect(page.getByRole('tab',{name:'Overview',exact:true})).toHaveAttribute('aria-selected','false');await expect(page.getByRole('tab',{name:'Overview',exact:true})).toHaveAttribute('tabindex','-1');
+  await page.getByRole('tab',{name:'Examples',exact:true}).click();await expect(page.getByRole('tabpanel',{name:'Examples',exact:true})).toHaveText('Practice makes progress');await expect(page.getByRole('tab',{name:'Examples',exact:true})).toHaveAttribute('aria-selected','true');await expect(page.getByRole('tab',{name:'Overview',exact:true})).toHaveAttribute('aria-selected','false');await expect(page.getByRole('tab',{name:'Overview',exact:true})).toHaveJSProperty('tabIndex',-1);await expect(page.getByRole('tab',{name:'Examples',exact:true})).toHaveJSProperty('tabIndex',0);
 });
 
+const panels={Overview:'Welcome to Vue',Examples:'Practice makes progress',Resources:'Read the official guide'};
+async function expectActive(page,name){
+  const tab=page.getByRole('tab',{name,exact:true});await expect(tab).toBeFocused();await expect(tab).toHaveAttribute('aria-selected','true');await expect(tab).toHaveJSProperty('tabIndex',0);
+  for(const other of Object.keys(panels).filter(n=>n!==name)){const o=page.getByRole('tab',{name:other,exact:true});await expect(o).toHaveAttribute('aria-selected','false');await expect(o).toHaveJSProperty('tabIndex',-1);}
+  await expect(page.getByRole('tabpanel')).toHaveCount(1);await expect(page.getByRole('tabpanel',{name,exact:true})).toHaveText(panels[name]);
+}
+
 test("Tabs keyboard wraps and supports home and end", async ({ page }) => {
-  const overview=page.getByRole('tab',{name:'Overview',exact:true});await overview.focus();await overview.press('ArrowLeft');const resources=page.getByRole('tab',{name:'Resources',exact:true});await expect(resources).toBeFocused();await expect(page.getByRole('tabpanel',{name:'Resources'})).toHaveText('Read the official guide');await resources.press('ArrowRight');await expect(overview).toBeFocused();await overview.press('End');await expect(resources).toBeFocused();await resources.press('Home');await expect(overview).toBeFocused();await overview.press('ArrowRight');await expect(page.getByRole('tab',{name:'Examples',exact:true})).toBeFocused();await expect(page.locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
+  const overview=page.getByRole('tab',{name:'Overview',exact:true});await overview.focus();
+  for(const [key,name] of [['ArrowLeft','Resources'],['ArrowRight','Overview'],['ArrowRight','Examples'],['ArrowRight','Resources'],['Home','Overview'],['End','Resources'],['ArrowLeft','Examples'],['Home','Overview']]){await page.keyboard.press(key);await expectActive(page,name);}
+  await page.getByRole('tab',{name:'Examples',exact:true}).click();await expectActive(page,'Examples');await page.keyboard.press('ArrowRight');await expectActive(page,'Resources');
 });

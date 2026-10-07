@@ -8,9 +8,18 @@ test("Counter changes reps and clamps at zero", async ({ page }) => {
   await expect(page.getByRole('button',{name:'Remove',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Add',exact:true}).click();
   await expect(reps).toHaveText('1');
+  await page.getByLabel('Step',{exact:true}).fill('5');
+  await page.getByRole('button',{name:'Add',exact:true}).click();
+  await expect(reps).toHaveText('6');
+  await page.getByLabel('Step',{exact:true}).fill('2');
+  await page.getByRole('button',{name:'Remove',exact:true}).click();
+  await expect(reps).toHaveText('4');
   await page.getByLabel('Step',{exact:true}).fill('3');
   await page.getByRole('button',{name:'Remove',exact:true}).click();
+  await expect(reps).toHaveText('1');
+  await page.getByRole('button',{name:'Remove',exact:true}).click();
   await expect(reps).toHaveText('0');
+  await expect(page.getByRole('button',{name:'Remove',exact:true})).toBeDisabled();
 });
 
 test("Counter resets without losing its step", async ({ page }) => {
@@ -24,12 +33,17 @@ test("Counter resets without losing its step", async ({ page }) => {
 });
 
 test("Counter rejects invalid steps and recovers", async ({ page }) => {
+  await page.getByRole('button',{name:'Add',exact:true}).click();
+  await page.getByRole('button',{name:'Add',exact:true}).click();
   for(const value of ['', '0', '-2', '1.5']) {
     await page.getByLabel('Step',{exact:true}).fill(value);
     await expect(page.getByRole('button',{name:'Add',exact:true})).toBeDisabled();
     await expect(page.getByRole('button',{name:'Remove',exact:true})).toBeDisabled();
+    await expect(page.getByRole('status',{name:'Reps'})).toHaveText('2');
   }
   await page.getByLabel('Step',{exact:true}).fill('2');
   await page.getByRole('button',{name:'Add',exact:true}).click();
+  await expect(page.getByRole('status',{name:'Reps'})).toHaveText('4');
+  await page.getByRole('button',{name:'Remove',exact:true}).click();
   await expect(page.getByRole('status',{name:'Reps'})).toHaveText('2');
 });

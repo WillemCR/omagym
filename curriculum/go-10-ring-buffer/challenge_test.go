@@ -35,6 +35,27 @@ func TestWrapAndTypes(t *testing.T) {
 			t.Fatal(v, ok)
 		}
 	}
+	q, _ := New[[]byte](3)
+	var model []byte
+	for i := 0; i < 30; i++ {
+		for j := 0; j < 1+i%3; j++ {
+			v, ok := q.Push([]byte{byte(10*i + j)})
+			if full := len(model) == 3; ok != full || (full && v[0] != model[0]) {
+				t.Fatal("push", i, j, v, ok, "model", model)
+			}
+			if len(model) == 3 {
+				model = model[1:]
+			}
+			model = append(model, byte(10*i+j))
+		}
+		if v, ok := q.Pop(); !ok || v[0] != model[0] {
+			t.Fatal("pop", v, ok, "model", model)
+		}
+		model = model[1:]
+		if q.Len() != len(model) {
+			t.Fatal("len", q.Len(), "want", len(model))
+		}
+	}
 	a, _ := New[string](1)
 	b, _ := New[string](1)
 	a.Push("a")

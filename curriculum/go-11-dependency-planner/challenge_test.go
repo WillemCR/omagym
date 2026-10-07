@@ -6,13 +6,14 @@ import (
 )
 
 func TestBuildOrder(t *testing.T) {
-	g := map[string][]string{"app": {"lib", "test"}, "lib": {"base", "base"}, "test": {"base"}, "base": {}, "aaa": {}}
+	g := map[string][]string{"app": {"test", "lib"}, "lib": {"base", "base"}, "test": {"base"}, "base": {}, "aaa": {}}
+	orig := map[string][]string{"app": {"test", "lib"}, "lib": {"base", "base"}, "test": {"base"}, "base": {}, "aaa": {}}
 	got, e := Order(g)
 	want := []string{"aaa", "base", "lib", "test", "app"}
 	if e != nil || !reflect.DeepEqual(got, want) {
 		t.Fatal(got, e)
 	}
-	if !reflect.DeepEqual(g["lib"], []string{"base", "base"}) {
+	if !reflect.DeepEqual(g, orig) {
 		t.Fatal("mutated dependencies")
 	}
 }

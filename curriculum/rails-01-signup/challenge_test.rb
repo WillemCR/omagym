@@ -13,7 +13,7 @@ class SignupTest < Minitest::Test
     [nil,'','  '].each { |name| f=form(name:name); refute f.valid?; refute_empty f.errors[:name] }
   end
   def test_email_contract
-    [nil,'','a','@b','a@','a@@b','a b@c','a@b c'].each { |email| f=form(email:email); refute f.valid?; refute_empty f.errors[:email] }; assert form(email:'a@b').valid?
+    [nil,'','a','@b','a@','a@@b','a b@c','a@b c',"a@b\njunk","a@b\n","\na@b","a@\tb"].each { |email| f=form(email:email); refute f.valid?; refute_empty f.errors[:email] }; assert form(email:'a@b').valid?
   end
   def test_integer_adult_age
     [nil,'no',17,-1,18.5,'18.5'].each { |age| f=form(age:age); refute f.valid?; refute_empty f.errors[:age] }; assert form(age:'18').valid?

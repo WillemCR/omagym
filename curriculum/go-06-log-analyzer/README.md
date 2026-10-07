@@ -1,13 +1,14 @@
 # Log desk
 
-Summarize a stream of application log events without keeping the whole log in memory.
+Summarize a stream of application log events line by line.
 
 ## Your brief
 
 - Implement Analyze(r io.Reader) (Report, error) in package challenge. Report has Counts map[string]int and LastError string.
 - Each nonblank line has LEVEL|message. Split at the first |, trim both parts, and allow INFO, WARN and ERROR only. Additional | characters belong to the message.
 - Count each level and remember the last ERROR message. Empty messages, unknown levels or missing delimiters return a nil Counts map and an error.
-- Ignore whitespace-only lines. Empty input succeeds with an empty map. Propagate reader errors; inputs have lines shorter than 32 KiB.
+- Ignore whitespace-only lines. Empty input succeeds with an empty map. Inputs have lines shorter than 32 KiB.
+- Reader errors also return a nil Counts map; return or wrap the reader's error so errors.Is finds it.
 
 ## Run
 

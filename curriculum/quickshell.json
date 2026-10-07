@@ -17,7 +17,7 @@
       "Main.qml is an Item with title (string, initially CPU), percent (int, initially 0), and warningAt (int, initially 80). Its initial width is 240 and height is 40.",
       "A Text named label displays title followed by a colon, a space, the percentage clamped to 0\u2013100, and %. Changing title or percent must update it immediately.",
       "A Rectangle named meter has width equal to the component width multiplied by the clamped percentage divided by 100. Resizing the component updates the meter.",
-      "The meter color is #ef9a9a when the clamped percentage is at least warningAt, otherwise #a6d87b. The label must remain readable on the dark practice window."
+      "The meter color is #ef9a9a when the clamped percentage is at least warningAt, otherwise #a6d87b. The label must remain readable on the dark practice window: visible, fully opaque and light-colored (HSL lightness at least 0.6)."
     ],
     "docs": [
       {
@@ -57,7 +57,7 @@
     ],
     "requirements": [
       "Main.qml is an Item with use24Hours (bool, true), showSeconds (bool, false), overrideTime (var, null), and clock, an alias to a real enabled SystemClock.",
-      "A Text named clockLabel shows overrideTime when it is a Date; when overrideTime is null it shows clock.date in local time.",
+      "A Text named clockLabel shows overrideTime when it is a Date; when overrideTime is null it shows clock.date in local time and updates on every clock tick.",
       "24-hour output uses two-digit hours and minutes: 09:05. 12-hour output uses unpadded hours and uppercase AM/PM: 9:05 AM. Midnight is 12:00 AM and noon is 12:00 PM.",
       "When showSeconds is true, append two-digit seconds before AM/PM if present. Every input property remains reactive.",
       "Use SystemClock.Minutes precision when seconds are hidden and SystemClock.Seconds when shown. Removing overrideTime returns the display to the live clock."
@@ -81,6 +81,7 @@
       "test_seconds_and_pm",
       "test_time_replacement",
       "test_precision",
+      "test_live_clock_ticks",
       "test_return_to_live_time"
     ]
   },
@@ -102,7 +103,7 @@
       "Main.qml is an Item with workspaces (array of distinct positive integer IDs, initially [1,2,3]), activeId (int, initially 1), and signal requested(int workspaceId).",
       "Render one Rectangle per ID, in input order, in a horizontal row. Each is named workspace-ID and contains a Text named workspace-label-ID showing the ID, plus a MouseArea named workspace-click-ID.",
       "The active workspace rectangle is #a6d87b; all others are #344653. Changing activeId updates the colors, including IDs not present in the model (none active).",
-      "Clicking a delegate emits requested with its own ID exactly once. It must not change activeId: the caller owns selection state.",
+      "Clicking a delegate (tests deliver a real left-button click at its centre) emits requested with its own ID exactly once. It must not change activeId: the caller owns selection state.",
       "Replacing workspaces updates the delegates. Nonconsecutive IDs such as [2,7,11] work. An empty array removes all delegates. Do not call Hyprland or any desktop command."
     ],
     "docs": [
@@ -193,7 +194,7 @@
       "A Text named panelLabel displays title and is visible only when the component width is at least 320. Changing title and resizing must update it.",
       "A Text named detailLabel always displays detail. Its right edge stays 12 pixels from the component right edge, including at narrow widths.",
       "Use a local StatusDot.qml component named statusDot, positioned at x=12. StatusDot is an 8 by 8 circular Rectangle with a dotColor property defaulting to #a6d87b; its rendered color follows dotColor. Main passes accent to the dot.",
-      "Vertically center all three items. panelLabel begins 8 pixels after the dot right edge. Use readable text on the dark practice panel.",
+      "Vertically center all three items (within 1 pixel, for Qt's whole-pixel alignment). panelLabel begins 8 pixels after the dot right edge. Use readable text on the dark practice panel.",
       "The supplied shell.qml wraps Main in a real top-anchored PanelWindow. Tests exercise the content offscreen; screen-edge placement is a manual check using quickshell --path shell.qml. Ctrl+C closes only this practice panel. Do not modify your installed shell."
     ],
     "docs": [

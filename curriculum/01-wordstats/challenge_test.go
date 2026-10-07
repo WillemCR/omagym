@@ -14,6 +14,7 @@ func TestAnalyze(t *testing.T) {
 		{"tie", "cat dog", Stats{2, 2, "cat"}},
 		{"unicode", "éé abc\u2003Go", Stats{3, 3, "abc"}},
 		{"punctuation", "Go, go", Stats{2, 2, "go,"}},
+		{"unicode_case", "É é ÉCOLE école", Stats{4, 2, "école"}},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

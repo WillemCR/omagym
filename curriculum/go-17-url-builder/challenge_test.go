@@ -21,6 +21,14 @@ func TestQueryBoundaries(t *testing.T) {
 	if e != nil || got != "http://localhost:8080/a%20b?empty=&x=" {
 		t.Fatal(got, e)
 	}
+	got, e = AddQuery("https://example.com/?tag=b&tag=a", nil)
+	if e != nil || got != "https://example.com/?tag=b&tag=a" {
+		t.Fatal(got, e)
+	}
+	got, e = AddQuery("https://example.com/?tag=b&x=0&tag=a", map[string][]string{"x": {"2", "1"}})
+	if e != nil || got != "https://example.com/?tag=b&tag=a&x=2&x=1" {
+		t.Fatal(got, e)
+	}
 	got, e = AddQuery("https://example.com/?a=1", map[string][]string{"a": {}})
 	if e != nil || got != "https://example.com/" {
 		t.Fatal(got, e)

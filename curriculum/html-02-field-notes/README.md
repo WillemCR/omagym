@@ -6,7 +6,7 @@ Publish a small semantic article that works with landmarks, headings and table n
 
 - Create a header (banner) containing navigation named Main with links Notes → #notes and Schedule → #schedule; a main element id notes; and a footer (contentinfo).
 - Main contains one article, one h1 named Learning in public, and h2 headings Notes and Schedule in that order. Give the Schedule section id schedule so the navigation link reaches it.
-- Inside the article, show a time element with datetime 2026-09-12 and visible date 12 September 2026. Include a figure containing an img with meaningful alt Desk with a notebook (a local inline SVG data URL is fine) and figcaption Weekend setup.
+- Inside the article, show a time element with datetime 2026-09-12 and visible date 12 September 2026, and a figure containing an img with meaningful alt Desk with a notebook (a local inline SVG data URL is fine) and figcaption Weekend setup.
 - Provide a table with caption Weekend schedule, column headers Day and Focus (scope col), row headers Saturday and Sunday (scope row), and their data cells Build and Reflect respectively.
 
 ## Work and check

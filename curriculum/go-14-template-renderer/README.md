@@ -6,7 +6,7 @@ Render a safe HTML email preview from a template and recipient data.
 
 - Implement Render(source string,data map[string]string) (string,error) using Go HTML template semantics.
 - Support ordinary field references such as {{.Name}}, conditionals, and standard built-in template functions. Escape inserted values according to their HTML context.
-- A missing map key, invalid template syntax, or execution failure returns empty string and an error, never partial rendered output.
+- A missing map key in a field reference such as {{.Missing}}, invalid template syntax, or execution failure returns empty string and an error, never partial rendered output. Built-in functions such as index keep their standard behavior.
 - An empty template succeeds with an empty string. Preserve ordinary source whitespace. Do not mutate data or treat values as trusted HTML.
 
 ## Run

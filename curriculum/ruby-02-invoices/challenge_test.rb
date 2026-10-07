@@ -13,7 +13,7 @@ class InvoiceTest < Minitest::Test
     assert_equal({'Acme, Inc'=>10**25},invoice_totals(StringIO.new("customer,cents\n\"Acme, Inc\",#{10**25}\n")))
   end
   def test_invalid_csv_and_rows
-    ['',"cents,customer\n", "customer,cents\nx\n", "customer,cents\nx,1,2\n", "customer,cents\n,3\n", "customer,cents\n\"broken,3\n", *['-1','+1','1.5',' 1','1e3',''].map { |n| "customer,cents\nx,#{n}\n" }].each do |text|
+    ['',"cents,customer\n", "customer,cents\nx\n", "customer,cents\nx,1,2\n", "customer,cents\n,3\n", "customer,cents\n\"broken,3\n", "customer,cents\nAda,10\nBob,nope\n", "customer,cents\nAda,10\n,5\n", "customer,cents\nAda,10\nBob\n", "customer,cents\nAda,\"10\njunk\"\n", "customer,cents\nAda,\"10\n\"\n", *['-1','+1','1.5',' 1','1e3',''].map { |n| "customer,cents\nx,#{n}\n" }].each do |text|
       assert_raises(ArgumentError) { invoice_totals(StringIO.new(text)) }
     end
   end

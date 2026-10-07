@@ -32,13 +32,16 @@ func TestLifecycle(t *testing.T) {
 }
 func TestPathsAndMethods(t *testing.T) {
 	h := NewHandler()
-	for _, p := range []string{"/", "/kv/", "/kv/x/y", "/other/x"} {
+	for _, p := range []string{"/", "/kv/", "/kv/x/y", "/kv//x", "/other/x"} {
 		if w := req(h, "PUT", p, "x"); w.Code != 404 {
 			t.Errorf("%s should return 404", p)
 		}
 	}
-	if req(h, "POST", "/kv/x", "").Code != 405 {
-		t.Error("unsupported method should return 405")
+	req(h, "PUT", "/kv/x", "x")
+	for _, m := range []string{"POST", "HEAD"} {
+		if req(h, m, "/kv/x", "").Code != 405 {
+			t.Errorf("%s should return 405", m)
+		}
 	}
 }
 func TestIsolationAndEmptyValue(t *testing.T) {
@@ -49,7 +52,14 @@ func TestIsolationAndEmptyValue(t *testing.T) {
 	if w := req(h, "GET", "/kv/x", ""); w.Code != 200 || w.Body.String() != "" {
 		t.Error("empty value must be retrievable")
 	}
-	if req(NewHandler(), "GET", "/kv/x", "").Code != 404 {
+	req(h, "PUT", "/kv/a", " A\n")
+	req(h, "PUT", "/kv/b", "B")
+	if w := req(h, "GET", "/kv/a", ""); w.Body.String() != " A\n" {
+		t.Errorf("got %q; keys must store their raw body separately", w.Body.String())
+	}
+	h2 := NewHandler()
+	req(h2, "PUT", "/kv/b", "other")
+	if req(h2, "GET", "/kv/x", "").Code != 404 || req(h, "GET", "/kv/x", "").Code != 200 || req(h, "GET", "/kv/b", "").Body.String() != "B" {
 		t.Error("handlers must not share a store")
 	}
 }
@@ -60,10 +70,13 @@ func TestConcurrent(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			key := fmt.Sprintf("/kv/%d", i)
-			req(h, "PUT", key, "value")
-			if w := req(h, "GET", key, ""); w.Code != 200 || w.Body.String() != "value" {
+			key, val := fmt.Sprintf("/kv/%d", i), fmt.Sprint("value", i)
+			req(h, "PUT", key, val)
+			if w := req(h, "GET", key, ""); w.Code != 200 || w.Body.String() != val {
 				t.Errorf("concurrent request failed for %s", key)
+			}
+			if req(h, "DELETE", key, "").Code != 204 || req(h, "GET", key, "").Code != 404 {
+				t.Errorf("concurrent delete failed for %s", key)
 			}
 		}(i)
 	}

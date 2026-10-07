@@ -19,12 +19,20 @@ class CatalogTest < Minitest::Test
   end
   def test_available_order_and_filter
     result=Book.available; assert_kind_of ActiveRecord::Relation,result; assert_equal([@cheap.id,@mid.id,@tie.id],result.pluck(:id))
+    pricey=Book.create!(title:'Pricey',price_cents:300,stock:1,published:true); bargain=Book.create!(title:'Bargain',price_cents:50,stock:1,published:true); apex=Book.create!(title:'Apex',price_cents:300,stock:1,published:true)
+    assert_equal([bargain.id,@cheap.id,@mid.id,@tie.id,pricey.id,apex.id],Book.available.pluck(:id))
   end
   def test_inclusive_price_bounds
     result=Book.priced_between(150,200); assert_kind_of ActiveRecord::Relation,result;assert_equal([@mid.id,@tie.id,@hidden.id].sort,result.pluck(:id).sort);assert_equal([@mid.id,@tie.id].sort,Book.priced_between(200,200).pluck(:id).sort)
+    assert_equal(%w[Cheap Empty Hidden Negative],Book.priced_between(100,150).pluck(:title).sort); assert_equal([],Book.priced_between(0,99).pluck(:id))
   end
   def test_composable_relations
     assert_equal([@tie.id],Book.where(title:'Tie').available.priced_between(200,300).pluck(:id));assert_equal([@mid.id,@tie.id],Book.priced_between(150,300).available.pluck(:id));assert_equal([@cheap.id],Book.available.where(title:'Cheap').pluck(:id))
+  end
+  def test_relations_are_lazy
+    queries=[]; callback=->(*,payload) { queries << payload[:sql] unless payload[:name]=='SCHEMA' }
+    result=ActiveSupport::Notifications.subscribed(callback,'sql.active_record') { Book.available.priced_between(100,150).where(title:'Cheap') }
+    assert_equal([],queries); assert_equal([@cheap.id],result.pluck(:id))
   end
   def test_invalid_bounds
     [[-1,2],[3,2],['1',2],[1,2.5],[nil,3]].each { |a,b| assert_raises(ArgumentError) { Book.priced_between(a,b) } }

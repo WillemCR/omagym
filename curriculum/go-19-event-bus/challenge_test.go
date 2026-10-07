@@ -5,6 +5,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func TestTopicDelivery(t *testing.T) {
@@ -21,7 +22,27 @@ func TestTopicDelivery(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatal(got)
 	}
-	b.Subscribe("a", nil)()
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatal("nil callback was registered:", r)
+			}
+		}()
+		stopNil := b.Subscribe("a", nil)
+		b.Publish("a", "nil")
+		stopNil()
+		stopNil()
+	}()
+	want = append(want, "2:nil")
+	dup := 0
+	count := func(string) { dup++ }
+	stopFirst := b.Subscribe("dup", count)
+	b.Subscribe("dup", count)
+	stopFirst()
+	b.Publish("dup", "")
+	if dup != 1 {
+		t.Fatal("unsubscribe removed another registration of the same callback", dup)
+	}
 	NewBus().Publish("a", "other")
 	if !reflect.DeepEqual(got, want) {
 		t.Fatal("different buses share subscriptions", got)
@@ -50,11 +71,29 @@ func TestDeliverySnapshot(t *testing.T) {
 func TestReentrantPublish(t *testing.T) {
 	b := NewBus()
 	n := 0
+	got := []string{}
 	b.Subscribe("outer", func(string) { b.Publish("inner", "x") })
 	b.Subscribe("inner", func(string) { n++ })
-	b.Publish("outer", "")
-	if n != 1 {
-		t.Fatal(n)
+	b.Subscribe("loop", func(m string) {
+		got = append(got, m)
+		if m == "first" {
+			b.Publish("loop", "nested")
+			got = append(got, "returned")
+		}
+	})
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		b.Publish("outer", "")
+		b.Publish("loop", "first")
+	}()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("publishing from a callback deadlocked")
+	}
+	if n != 1 || !reflect.DeepEqual(got, []string{"first", "nested", "returned"}) {
+		t.Fatal(n, got)
 	}
 }
 func TestConcurrentBus(t *testing.T) {
@@ -73,8 +112,18 @@ func TestConcurrentBus(t *testing.T) {
 			}
 		}()
 	}
+	var late atomic.Int64
+	stop := b.Subscribe("shared", func(string) { late.Add(1) })
+	for i := 0; i < 20; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			stop()
+		}()
+	}
 	wg.Wait()
-	if n.Load() != 400 {
-		t.Fatal(n.Load())
+	b.Publish("shared", "")
+	if n.Load() != 400 || late.Load() != 0 {
+		t.Fatal(n.Load(), late.Load())
 	}
 }

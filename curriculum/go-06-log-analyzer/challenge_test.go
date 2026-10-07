@@ -2,14 +2,15 @@ package challenge
 
 import (
 	"errors"
+	"io"
 	"reflect"
 	"strings"
 	"testing"
 )
 
 func TestSummary(t *testing.T) {
-	r, e := Analyze(strings.NewReader(" INFO | ready\nERROR|first\nWARN|a|b\nERROR | last \n"))
-	if e != nil || !reflect.DeepEqual(r.Counts, map[string]int{"INFO": 1, "WARN": 1, "ERROR": 2}) || r.LastError != "last" {
+	r, e := Analyze(strings.NewReader(" INFO | ready\nERROR|first\nWARN|a|b\nERROR | last|retry \n"))
+	if e != nil || !reflect.DeepEqual(r.Counts, map[string]int{"INFO": 1, "WARN": 1, "ERROR": 2}) || r.LastError != "last|retry" {
 		t.Fatalf("unexpected report: %#v %v", r, e)
 	}
 }
@@ -28,12 +29,16 @@ func TestMalformed(t *testing.T) {
 	}
 }
 
+var errDisk = errors.New("disk unavailable")
+
 type brokenReader struct{}
 
-func (brokenReader) Read([]byte) (int, error) { return 0, errors.New("disk unavailable") }
+func (brokenReader) Read([]byte) (int, error) { return 0, errDisk }
 func TestReaderFailure(t *testing.T) {
-	r, e := Analyze(brokenReader{})
-	if e == nil || r.Counts != nil {
-		t.Fatalf("must propagate reader failure")
+	for _, in := range []io.Reader{brokenReader{}, io.MultiReader(strings.NewReader("INFO|ok\nERROR|x\n"), brokenReader{})} {
+		r, e := Analyze(in)
+		if !errors.Is(e, errDisk) || r.Counts != nil {
+			t.Fatalf("must propagate reader failure with nil Counts: %#v %v", r, e)
+		}
 	}
 }

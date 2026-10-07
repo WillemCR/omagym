@@ -7,7 +7,7 @@ Turn a blank board into a useful, persistent weekend checklist.
 - Provide a Task input and Add task button. Trim submissions, reject blank text, append a task and clear the input. Start empty when storage is empty.
 - Each task is a list item in a list named Tasks, with a checkbox labelled by its task text and a Delete <task text> button. Duplicate text is allowed; task identities remain independent.
 - Show a status named Remaining with N remaining. Checkbox toggles update the count; deleting removes only the chosen task.
-- Persist tasks and completion under localStorage key omagym-weekend-tasks so reload restores them. A malformed value at that key must recover to an empty usable board.
+- Persist tasks and completion under localStorage key omagym-weekend-tasks so reload restores them. A malformed value at that key (invalid JSON, or JSON that is not a list of tasks) must recover to an empty usable board.
 
 ## Work and check
 

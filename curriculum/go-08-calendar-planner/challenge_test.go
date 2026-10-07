@@ -14,18 +14,19 @@ func TestMergeBookings(t *testing.T) {
 	}
 }
 func TestNoMutation(t *testing.T) {
-	in := []Interval{{90, 100}, {0, 10}}
-	copyIn := append([]Interval(nil), in...)
-	out, e := Merge(in)
-	if e != nil || len(out) != 2 {
-		t.Fatal(out, e)
-	}
-	if !reflect.DeepEqual(in, copyIn) {
-		t.Fatal("input reordered")
-	}
-	out[0].Start = 99
-	if !reflect.DeepEqual(in, copyIn) {
-		t.Fatal("result aliases input")
+	for _, in := range [][]Interval{{{90, 100}, {0, 10}}, {{0, 1440}}, {{0, 10}, {20, 30}}, {{0, 10}, {5, 20}}} {
+		copyIn := append([]Interval(nil), in...)
+		out, e := Merge(in)
+		if e != nil || len(out) == 0 {
+			t.Fatal(out, e)
+		}
+		if !reflect.DeepEqual(in, copyIn) {
+			t.Fatal("input reordered", in)
+		}
+		out[0].Start = 99
+		if !reflect.DeepEqual(in, copyIn) {
+			t.Fatal("result aliases input", in)
+		}
 	}
 }
 func TestBoundaries(t *testing.T) {

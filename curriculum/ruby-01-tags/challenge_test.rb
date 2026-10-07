@@ -7,6 +7,8 @@ class TagsTest < Minitest::Test
   end
   def test_normalization_and_deduplication
     assert_equal({'ruby'=>[2,9], 'web'=>[9]}, tag_index([{id:9,tags:[' Ruby ','ruby','Web',' ']},{id:2,tags:['RUBY']}]))
+    assert_equal({'go'=>[1,4,7]}, tag_index([{id:4,tags:['go']},{id:1,tags:['Go']},{id:7,tags:['GO']}]))
+    assert_equal({'go'=>[3,8]}, tag_index([{id:3,tags:['go']},{id:8,tags:['go']}]))
   end
   def test_unicode_and_punctuation
     assert_equal({'c++'=>[1], 'été'=>[1]}, tag_index([{id:1,tags:['C++','ÉTÉ']}]))
