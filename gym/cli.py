@@ -36,6 +36,8 @@ def render_run(run):
     show(('PASS' if run['passed'] else 'KEEP GOING') + (' · saved files have changed since this run' if run.get('stale') else ''))
     for test in run['tests']:
         show(f"  {test['action'].upper():5} {test['name']}")
+    if not run.get('checksObserved', True):
+        show('\nSome checks did not report. A crash, timeout or the output limit stopped the suite early; see the output below.')
     show(f"\n{run['elapsed']:.1f}s · snapshot {run['fingerprint'][:12]}\n")
     show(run.get('output', ''))
 

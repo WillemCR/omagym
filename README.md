@@ -173,7 +173,7 @@ Five projects progress through real QML and Quickshell components:
 4. **Command status widget** — Process, stdout collection, errors and repeat runs.
 5. **Responsive practice panel** — adaptive layout and reusable components inside a supplied PanelWindow.
 
-Every project has an unsolved `Main.qml`, a standalone `shell.qml`, official Qt/Quickshell documentation links, and six behavioral checks. `omagym test` runs actual QML offscreen in Bubblewrap with a fresh component per case. No desktop, compositor or session-bus connection is exposed to the tests. The workspace project uses supplied data; the process project uses harmless local commands. Tested with Quickshell 0.3.1.
+Every project has an unsolved `Main.qml`, a standalone `shell.qml`, official Qt/Quickshell documentation links, and six or seven behavioral checks. `omagym test` runs actual QML offscreen in Bubblewrap with a fresh component per case. No desktop, compositor or session-bus connection is exposed to the tests. The workspace project uses supplied data; the process project uses harmless local commands. Tested with Quickshell 0.3.1.
 
 For a visual check, run `quickshell --path shell.qml` in the project folder and stop it with Ctrl+C. This opens a separate practice window or panel; it does not replace your Omarchy configuration. Automated checks inspect live properties, bindings and signals; visual placement and actual pointer interaction remain manual checks. These projects do not use the browser Preview button.
 

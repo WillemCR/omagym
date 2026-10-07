@@ -44,6 +44,12 @@ class RunnerTests(unittest.TestCase):
                 self.assertIn('-race', call.args[0])
                 self.assertEqual(call.args[3]['GOPROXY'], 'off')
 
+    def test_unreported_checks_are_listed_as_missing(self):
+        output = '{"Action":"pass","Test":"first"}\nOutput limit exceeded.'
+        result, _ = self.run_output('go', output, expected=['first', 'second'], rc=-1)
+        self.assertFalse(result['passed']); self.assertFalse(result['checksObserved'])
+        self.assertEqual(result['tests'], [{'name': 'first', 'action': 'pass'}, {'name': 'second', 'action': 'missing'}])
+
     def test_go_discovers_original_suite_and_reports_leaf_subtests(self):
         project = {'id': 'old-go', 'track': 'go', 'runner': 'go', 'testFiles': ['challenge_test.go']}
         files = {'challenge_test.go': 'func TestLegacy(t *testing.T) {}\n'}

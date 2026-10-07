@@ -40,6 +40,7 @@ jobs:
           gem install bundler -v 4.0.20 --no-document --no-user-install --install-dir "$PWD/.runtime/gems" --bindir "$PWD/.runtime/gems/bin"
           .runtime/gems/bin/bundle install
       - run: npm run check
+      - run: npm run lint
       - run: npm test
       - run: npm run build
       - run: npm audit --audit-level=high

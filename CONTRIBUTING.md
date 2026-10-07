@@ -6,16 +6,15 @@ Complete the setup in [README.md](README.md). The full regression suite also req
 
 ```sh
 npm run check
+npm run lint
 npm test
 npm run build
 npm audit
 ```
 
-`npm run lint` is available as a diagnostic, but the inherited lint baseline currently reports 53 errors across app effects, accessibility rules, copied UI components and curriculum fixtures. It is not a release or CI gate yet. Type checking, tests and the build are enforced; do not present them as a clean lint result.
-
 The regression suite uses temporary directories, real local HTTP listeners and Node/Ruby reporter fixtures. It does not require an agent login or open desktop windows. Restricted containers must permit loopback sockets. Real exercise runs also require Bubblewrap user namespaces and the relevant system toolchains.
 
-GitHub Actions runs type checking, the regression suite, the production build and npm's high-severity advisory check. Desktop integration and isolated browser/compiler exercises need separate validation on a compatible Linux desktop; a green CI run does not certify those paths.
+GitHub Actions runs type checking, lint, the regression suite, the production build and npm's high-severity advisory check. Desktop integration and isolated browser/compiler exercises need separate validation on a compatible Linux desktop; a green CI run does not certify those paths.
 
 ## Changes
 
@@ -28,7 +27,7 @@ GitHub Actions runs type checking, the regression suite, the production build an
 
 ## Curriculum
 
-The catalog lives in `curriculum/*.json`; each project points to a starter directory. Copy a nearby project's structure for the same track. Include a concrete brief, editable entry file, canonical test files, expected check names and official documentation URLs.
+The catalog lives in `curriculum/*.json`; each project points to a starter directory. Copy a nearby project's structure for the same track. Include a concrete brief, editable entry file, canonical test files, expected check names and official documentation URLs. Every JSON requirement must appear verbatim in the README; `tests/test_curriculum.py` enforces this and that declared checks exist in the canonical tests.
 
 Tests should exercise observable behavior. Run the unsolved starter: it must compile/load, report every expected check and fail meaningful assertions. Independently verify a temporary reference implementation passes every check. Remove that reference before preparing a contribution. Do not turn source-text comparisons, absent files or compilation errors into the learning objective.
 

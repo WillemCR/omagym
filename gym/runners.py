@@ -49,6 +49,7 @@ def isolated(args, folder, runtime, env, timeout=120):
     cmd += ['--bind',str(cache),str(cache),'--chdir',str(folder),'--'] + [str(a) for a in args]
     clean={'PATH':str(node.parent)+':/usr/bin','HOME':'/home/learner','LANG':'C.UTF-8',
            'TMPDIR':'/tmp','NO_COLOR':'1', **env}
+    clean={k:v for k,v in clean.items() if v is not None}
     return run_process(cmd, folder, env=clean, timeout=timeout, limit=250_000)
 
 def execute(project, files, folder, runtime):
@@ -127,7 +128,8 @@ def execute(project, files, folder, runtime):
         # ESM test imports resolve against the root's installed, locked dependencies.
         (folder/'node_modules').symlink_to(ROOT/'node_modules',target_is_directory=True)
         (folder/'package.json').write_text('{"type":"module"}\n')
-        env={'OMAGYM_PROJECT':str(folder),'OMAGYM_TRACK':project['track']}
+        # Playwright forces colour in its children; NO_COLOR would only add Node warnings.
+        env={'OMAGYM_PROJECT':str(folder),'OMAGYM_TRACK':project['track'],'NO_COLOR':None}
         rc,output=isolated([node,str(ROOT/'node_modules/@playwright/test/cli.js'),'test','--config',str(ROOT/'gym/runtime/playwright.config.mjs')],folder,runtime,env,timeout=180)
         lines=output.splitlines()
         report=folder/'.test-report.json'
@@ -148,6 +150,8 @@ def execute(project, files, folder, runtime):
     else:raise GymError('Unsupported test runner.')
     passed=rc==0 and bool(expected) and all(tests.get(n)=='pass' for n in expected)
     leaf=[dict(name=n,action=a) for n,a in tests.items() if not any(other.startswith(n+'/') for other in tests)]
+    # A crash, timeout or output limit can stop a suite before some checks report; show them rather than drop them.
+    leaf+=[dict(name=n,action='missing') for n in expected if n not in tests]
     return dict(passed=passed,output='\n'.join(lines),tests=leaf,elapsed=round(time.monotonic()-start,2),
                 checksObserved=all(n in tests for n in expected),runner=runner)
 
