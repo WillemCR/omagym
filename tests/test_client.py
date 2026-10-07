@@ -2,13 +2,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import socket
+import subprocess
 import tempfile
 import threading
 import unittest
 from unittest.mock import patch
 
 from gym.client import Client, atomic_json, process_stamp
-from gym.core import GymError
+from gym.core import GymError, ROOT
 
 
 class ClientTests(unittest.TestCase):
@@ -42,6 +43,13 @@ class ClientTests(unittest.TestCase):
             kill.assert_not_called()
         self.assertFalse((client.runtime/'server-process.json').exists())
         self.assertFalse((client.runtime/'server.pid').exists())
+
+    def test_launcher_ignores_gym_packages_in_the_working_directory(self):
+        decoy=self.root/'gym';decoy.mkdir()
+        (decoy/'__init__.py').write_text('raise SystemExit("decoy imported")\n')
+        run=subprocess.run([str(ROOT/'bin/omagym'),'--help'],cwd=self.root,capture_output=True,text=True,timeout=30)
+        self.assertEqual(run.returncode,0,run.stderr)
+        self.assertIn('usage: omagym',run.stdout)
 
     def test_invalid_record_means_no_stop(self):
         client=Client(self.root)

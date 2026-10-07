@@ -3,4 +3,5 @@
 omagym_script=$(readlink -f -- "$0")
 omagym_root=$(dirname -- "$(dirname -- "$omagym_script")")
 export PYTHONPATH="$omagym_root${PYTHONPATH:+:$PYTHONPATH}"
-exec "$omagym_root/.venv/bin/python" -m gym.cli "$@"
+# -P keeps the caller's working directory off sys.path, so another checkout's gym/ is never imported.
+exec "$omagym_root/.venv/bin/python" -P -m gym.cli "$@"
