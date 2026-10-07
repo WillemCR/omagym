@@ -1,6 +1,6 @@
 # Third-party notices
 
-Omagym includes adapted shadcn/ui components in `components/ui/` and related hooks. Their original MIT notice is reproduced below. Installed npm and Ruby dependencies retain their own licenses; consult their distributed license files. Other third-party dependencies are installed from the lockfiles rather than vendored here.
+Omagym includes adapted shadcn/ui components in `components/ui/`. Their original MIT notice is reproduced below. Installed npm and Ruby dependencies retain their own licenses; consult their distributed license files. Other third-party dependencies are installed from the lockfiles rather than vendored here.
 
 ## shadcn/ui
 
