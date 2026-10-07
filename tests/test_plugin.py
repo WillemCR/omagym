@@ -74,6 +74,25 @@ class PluginTests(unittest.TestCase):
             plugin.sync_application(self.source, self.base, stop)
         self.assertEqual(self.git(app, 'rev-parse', 'HEAD'), old)
 
+    def fake_app(self, stop_clears):
+        app = self.root/'app'; (app/'.venv/bin').mkdir(parents=True); (app/'.runtime').mkdir()
+        (app/'.runtime/server-process.json').write_text('{}')
+        clear = 'rm -f .runtime/server-process.json; exit 0' if stop_clears else 'exit 3'
+        python = app/'.venv/bin/python'
+        python.write_text(f'#!/bin/sh\ncase "$*" in *"server status"*) exit 2;; *"server stop"*) {clear};; esac\n')
+        python.chmod(0o755)
+        return app
+
+    def test_stale_backend_record_does_not_block_updates(self):
+        app = self.fake_app(stop_clears=True)
+        plugin.stop_owned_backend(app)
+        self.assertFalse((app/'.runtime/server-process.json').exists())
+
+    def test_unverifiable_backend_record_blocks_updates(self):
+        app = self.fake_app(stop_clears=False)
+        with self.assertRaisesRegex(RuntimeError, 'Cannot verify the recorded backend'):
+            plugin.stop_owned_backend(app)
+
     def test_dirty_plugin_is_not_silently_ignored(self):
         (self.source/'app.txt').write_text('uncommitted')
         with self.assertRaisesRegex(RuntimeError, 'plugin has local source edits'):

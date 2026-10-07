@@ -169,7 +169,7 @@ def main(argv=None):
                 show('\nAdd: omagym modules add ruby\nChoose: omagym modules choose\nRemoving a module keeps all learner files and installed dependencies.')
         elif args.action == 'server':
             output = client.ensure() if args.operation == 'start' else client.stop() if args.operation == 'stop' else client.identity()
-            if not args.json: show('Backend stopped.' if args.operation == 'stop' else f'Omagym is ready at {client.url}')
+            if not args.json: show(('Removed a stale backend record; no backend was running.' if output.get('stale') else 'Backend stopped.') if args.operation == 'stop' else f'Omagym is ready at {client.url}')
         else:
             client.ensure()
             sessions = Sessions(client)

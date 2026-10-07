@@ -141,8 +141,13 @@ class Client:
                 raise GymError('This backend was not started by the Omagym launcher; use its documented stop command.', 409)
             if not isinstance(record,dict):
                 raise GymError('The backend ownership record is invalid. No process was stopped.',409)
-            if process_stamp(record.get('pid')) != record.get('process') or not record.get('process'):
-                raise GymError('The recorded backend is no longer running. No process was stopped.', 409)
+            if not record.get('process'):
+                raise GymError('The backend ownership record is invalid. No process was stopped.',409)
+            if process_stamp(record.get('pid')) != record['process']:
+                # PID plus start time no longer match: the recorded backend exited, so its record is stale.
+                (self.runtime/'server-process.json').unlink(missing_ok=True)
+                (self.runtime/'server.pid').unlink(missing_ok=True)
+                return {'stopped': False, 'stale': True}
             info = self.identity()
             if any(info.get(k) != record.get(k) for k in ('pid', 'instance', 'root')):
                 raise GymError('Backend identity changed. No process was stopped.', 409)

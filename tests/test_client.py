@@ -31,10 +31,22 @@ class ClientTests(unittest.TestCase):
             spawn.assert_not_called()
         finally:server.shutdown();server.server_close();worker.join()
 
-    def test_no_matching_identity_means_no_stop(self):
+    def test_exited_backend_record_is_cleared_without_signalling(self):
         client=Client(self.root)
         atomic_json(client.runtime/'server-process.json',{'pid':123,'process':{'start':'old'}})
-        with patch('gym.client.process_stamp',return_value={'start':'new'}),patch('gym.client.os.kill') as kill:
+        (client.runtime/'server.pid').write_text('123\n')
+        for stamp in ({'start':'new'}, None):
+            with patch('gym.client.process_stamp',return_value=stamp),patch('gym.client.os.kill') as kill:
+                if (client.runtime/'server-process.json').exists():
+                    self.assertEqual(client.stop(),{'stopped':False,'stale':True})
+            kill.assert_not_called()
+        self.assertFalse((client.runtime/'server-process.json').exists())
+        self.assertFalse((client.runtime/'server.pid').exists())
+
+    def test_invalid_record_means_no_stop(self):
+        client=Client(self.root)
+        atomic_json(client.runtime/'server-process.json',{'pid':123})
+        with patch('gym.client.os.kill') as kill:
             with self.assertRaisesRegex(GymError,'No process was stopped'):client.stop()
         kill.assert_not_called()
 

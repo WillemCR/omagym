@@ -138,9 +138,12 @@ def stop_owned_backend(app):
                            cwd=app, env=env, capture_output=True, text=True, timeout=10)
     if check.returncode:
         # An offline/foreign backend cannot be modified by rebuilding this app.
-        # A recorded owned process needs inspection if its status cannot be read.
+        # A recorded owned process needs inspection unless stop proves the record stale.
         if (app/'.runtime/server-process.json').exists():
-            raise RuntimeError('Cannot verify the recorded backend. Run this app’s bin/omagym server status before updating.')
+            stale = subprocess.run([str(python), '-m', 'gym.cli', 'server', 'stop', '--json'],
+                                   cwd=app, env=env, capture_output=True, text=True, timeout=10)
+            if stale.returncode or (app/'.runtime/server-process.json').exists():
+                raise RuntimeError('Cannot verify the recorded backend. Run this app’s bin/omagym server status before updating.')
         return
     run([python, '-m', 'gym.cli', 'server', 'stop'], cwd=app, env=env)
 
