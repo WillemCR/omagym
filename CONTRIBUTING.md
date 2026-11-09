@@ -14,6 +14,8 @@ npm audit
 
 The regression suite uses temporary directories, real local HTTP listeners and Node/Ruby reporter fixtures. It does not require an agent login or open desktop windows. Restricted containers must permit loopback sockets. Real exercise runs also require Bubblewrap user namespaces and the relevant system toolchains.
 
+After building, run `node tests/dashboard.mjs` with Chromium installed at `/usr/bin/chromium`. It tests dashboard connection recovery, navigation around unreadable files, refreshed test results, and unsaved-draft/conflict preservation in a headless browser. API responses are fixtures; it does not start a backend or touch practice files.
+
 GitHub Actions runs type checking, lint, the regression suite, the production build and npm's high-severity advisory check. Desktop integration and isolated browser/compiler exercises need separate validation on a compatible Linux desktop; a green CI run does not certify those paths.
 
 ## Changes
@@ -41,7 +43,7 @@ Use temporary projects for destructive fixtures. Keep any private local verifica
 
 ## Dependency maintenance
 
-`package.json` overrides `sharp` to 0.35.4 because the current Cloudflare tooling pins an older release affected by GHSA-rgj7-g3m4-5g8c. Recheck the upstream dependency and npm audit before removing this override. Keep React, React DOM and React Server DOM on matching versions.
+`package.json` overrides Satori's pinned `fflate` to 0.7.5 to address [GHSA-px8p-9vwx-vf98](https://github.com/advisories/GHSA-px8p-9vwx-vf98). Recheck the upstream dependency and npm audit before removing this override. Keep React, React DOM and React Server DOM on matching versions.
 
 ## Omarchy plugin
 

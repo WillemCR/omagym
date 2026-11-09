@@ -202,7 +202,7 @@ def main(argv=None):
                             for role, component in output['components'].items():
                                 show(f"  {role}: {component['state']}")
                                 if component.get('message'): show('  '+component['message'])
-                            if any(c['state']!='open' for c in output['components'].values()):
+                            if any(c['state']=='unverified' for c in output['components'].values()):
                                 show('Retry unverified windows explicitly: omagym resume '+project+' --reopen')
                         show('\nNext: save your work, then run omagym test.')
                     if not output.get('terminalOnly') and any(output['components'].get(role,{}).get('state')!='open' for role in output.get('roles',[]) if role!='files'):

@@ -8,6 +8,8 @@ Prefer the terminal? Every practice operation also works from the CLI. A full br
 
 **Omagym is an independent community project. It is not affiliated with, officially supported by, or endorsed by DHH (David Heinemeier Hansson) or Omacom.** Please report Omagym issues in [this repository](https://github.com/WillemCR/omagym/issues).
 
+Preparing for a small Omarchy beta. See the [beta tester walkthrough and release checklist](BETA.md) for the first session, feedback, and remaining release gates.
+
 ## Install as an Omarchy plugin
 
 On an x86-64 Omarchy laptop with the Quickshell plugin system:
@@ -74,7 +76,7 @@ Non-interactive plugin setup can use `--modules go,javascript` or `--modules non
 ## Requirements
 
 - Linux with Bubblewrap (`bwrap`) and permission to create user namespaces.
-- Python 3.11+ and Node.js/npm. Use the version in `.node-version` (25.2.1) for reproducible builds.
+- Python 3.11+ and Node.js 24+/npm. Use the version in `.node-version` (25.2.1) for reproducible builds.
 - For Go: Go 1.23+ and a C compiler (the suite uses the race detector).
 - For Rust: Rust and Cargo.
 - For Ruby/Rails: Ruby 3.4 and the local gems installed below.

@@ -112,7 +112,10 @@ class Desktop:
                                 f'[{self.project_id}]' in c.get('title', '')))
         elif role == 'files':
             argv = ['xdg-open', str(self.folder)]
-            handler = command(['xdg-mime', 'query', 'default', 'inode/directory'])
+            try:
+                handler = command(['xdg-mime', 'query', 'default', 'inode/directory'])
+            except GymError:
+                handler = ''  # The launch PID can still identify a new window.
             known = {'org.gnome.Nautilus.desktop': 'org.gnome.Nautilus',
                      'org.kde.dolphin.desktop': 'org.kde.dolphin', 'thunar.desktop': 'thunar'}
             match = lambda c: c.get('class', '').lower() == known.get(handler, '\0').lower() and self.project_id in c.get('title', '')

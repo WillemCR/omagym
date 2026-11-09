@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "dev": "vinext dev",
@@ -52,7 +52,12 @@
     "oxlint-tsgolint": "7.0.2001",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
-    "vite": "8.2.2"
+    "vite": "8.2.4"
+  },
+  "overrides": {
+    "satori": {
+      "fflate": "0.7.5"
+    }
   },
   "type": "module",
   "description": "Guided coding practice with your own editor, isolated tests, and a feedback-only coach.",

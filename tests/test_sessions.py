@@ -1,5 +1,7 @@
 import importlib.util
+import io
 import json
+from contextlib import redirect_stdout
 from pathlib import Path
 import tempfile
 import unittest
@@ -82,6 +84,52 @@ class SessionTests(unittest.TestCase):
             first = self.sessions.start(self.id); second = self.sessions.start(self.id)
         self.assertEqual(first['id'], second['id'])
         self.assertEqual(launched, ['editor','terminal','companion'])
+
+    def test_failed_launch_helper_does_not_block_other_windows_or_normal_resume(self):
+        companion = {'address':'0x1','pid':201,'initialClass':'companion','stableId':'1','workspace':{'name':'omagym-'+self.id}}
+        terminal = {'address':'0x2','pid':202,'initialClass':'terminal','stableId':'2','workspace':{'name':'omagym-'+self.id}}
+        with patch.dict('os.environ', {'HYPRLAND_INSTANCE_SIGNATURE':'test'}), \
+             patch('gym.sessions.available', return_value=True), \
+             patch('gym.sessions.hypr', return_value={'name':'1'}), \
+             patch.object(Desktop, 'focus'), \
+             patch('gym.desktop.hypr', side_effect=[[], [], [companion], [companion], [companion], [companion, terminal]]), \
+             patch('gym.desktop.subprocess.Popen', side_effect=[FileNotFoundError('missing launch helper'), Mock(pid=201), Mock(pid=202)]) as launch:
+            first = self.sessions.start(self.id, no_editor=True)
+            self.assertEqual(first['components']['terminal']['state'], 'failed')
+            self.assertEqual(self.sessions.read(self.id)['components']['terminal']['state'], 'failed')
+            self.assertIn('missing launch helper', first['components']['terminal']['message'])
+            self.assertEqual(first['components']['companion']['state'], 'open')
+            resumed = self.sessions.start(self.id)
+        self.assertEqual(resumed['id'], first['id'])
+        self.assertEqual(resumed['components']['terminal']['state'], 'open')
+        self.assertEqual(resumed['components']['companion']['window']['address'], companion['address'])
+        self.assertEqual(launch.call_count, 3)
+
+    def test_file_manager_can_launch_without_mime_lookup(self):
+        desktop = Desktop(self.root, self.id, 'http://127.0.0.1:4310/')
+        window = {'address':'0x3','pid':203,'initialClass':'custom-files','stableId':'3',
+                  'workspace':{'name':desktop.workspace}}
+        with patch('gym.desktop.command', side_effect=GymError('xdg-mime unavailable',503)), \
+             patch('gym.desktop.hypr', side_effect=[[], [window]]), \
+             patch.object(desktop, 'focus'), \
+             patch('gym.desktop.subprocess.Popen', return_value=Mock(pid=203)) as launch:
+            result = desktop.launch('files')
+        self.assertEqual(result['state'], 'open')
+        self.assertEqual(result['window']['pid'], 203)
+        self.assertEqual(launch.call_args.args[0], ['xdg-open', str(desktop.folder)])
+
+    def test_cli_reopen_hint_only_for_unverified_windows(self):
+        for state in ('open', 'failed', 'unverified'):
+            with self.subTest(state=state), patch('gym.cli.Client') as client, patch('gym.cli.Sessions') as sessions:
+                client.return_value.status.return_value = {'project':{'title':'Practice'}}
+                sessions.return_value.resolve.return_value = self.id
+                sessions.return_value.start.return_value = {
+                    'folder':str(self.gym.folder(self.id)), 'workspace':'omagym-'+self.id,
+                    'roles':['terminal'], 'components':{'terminal':{'state':state}}}
+                output = io.StringIO()
+                with redirect_stdout(output): code = main(['resume', self.id])
+                self.assertEqual(code, 0 if state == 'open' else 2)
+                self.assertEqual('--reopen' in output.getvalue(), state == 'unverified')
 
     def test_simultaneous_starts_share_one_session(self):
         with ThreadPoolExecutor(max_workers=2) as pool:

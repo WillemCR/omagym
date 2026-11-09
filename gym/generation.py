@@ -8,6 +8,7 @@ import time
 import uuid
 from pathlib import Path
 from urllib.parse import urlsplit
+from .client import atomic_json
 from .core import GymError, run_process, COACH_SCHEMA, MAX_FILE, MAX_SNAPSHOT, ALLOWED
 from .runners import TRACKS, execute, browser_ready
 
@@ -107,8 +108,13 @@ class Generator:
             try:
                 job=json.loads(path.read_text())
                 if job['status'] in ('running','queued'):
-                    job.update(status='failed',message='Server restarted during generation. Start a new generation when ready.')
-                    path.write_text(json.dumps(job))
+                    project=next((p for p in gym.catalog if p.get('generated') and p.get('generationId')==job['id']),None)
+                    if project:
+                        job.update(status='complete',message='Your project is ready',projectId=project['id'],title=project['title'])
+                    else:
+                        job.update(status='failed',message='Server restarted during generation. Start a new generation when ready.')
+                    try:atomic_json(path,job)
+                    except OSError:pass
                 self.jobs[job['id']]=job
             except (ValueError,KeyError):pass
 
@@ -120,8 +126,7 @@ class Generator:
     def update(self,id,**values):
         with self.lock:
             self.jobs[id].update(values)
-            dest=self.gym.runtime/('generation-'+id+'.json');temp=dest.with_suffix('.tmp')
-            temp.write_text(json.dumps(self.jobs[id]));temp.replace(dest)
+            atomic_json(self.gym.runtime/('generation-'+id+'.json'),self.jobs[id])
 
     def get(self,id):
         with self.lock:
@@ -136,11 +141,22 @@ class Generator:
         if not self.gym.job_lock.acquire(blocking=False):raise GymError('Another test, coach, or generator is busy.',409)
         id=uuid.uuid4().hex
         self.jobs[id]=dict(id=id,status='queued',message='Preparing project designer',track=track,createdAt=time.time())
-        self.update(id)
-        threading.Thread(target=self.work,args=(id,prompt.strip(),track,timebox),daemon=True).start()
+        try:
+            self.update(id)
+            threading.Thread(target=self.work,args=(id,prompt.strip(),track,timebox),daemon=True).start()
+        except Exception as error:
+            message='The generator could not start. Check local file permissions and try again.'
+            try:
+                self.update(id,status='failed',message=message)
+            except OSError:
+                pass
+            finally:
+                self.gym.job_lock.release()
+            raise GymError(message,503) from error
         return self.get(id)
 
     def work(self,id,prompt,track,timebox):
+        published_project=None
         try:
             codex=shutil.which('codex')
             if not codex:raise GymError('Codex is not installed. Sign in with codex login, then try again.',503)
@@ -172,7 +188,7 @@ class Generator:
                     except (GymError,ValueError) as e:
                         repair=str(e)
                         if attempt==2:raise GymError('The designer could not produce a validated suite after three attempts. Nothing was added. Try narrowing the project idea.',502)
-                meta.update(prompt=prompt,timebox=timebox,validation={'referencePassed':True,'starterNeedsWork':True,'checks':len(meta['checks'])})
+                meta.update(generationId=id,prompt=prompt,timebox=timebox,validation={'referencePassed':True,'starterNeedsWork':True,'checks':len(meta['checks'])})
                 target=self.gym.generated/meta['id']
                 with self.gym.lock:
                     # Publish only after both variants passed validation; never save reference code.
@@ -184,19 +200,28 @@ class Generator:
                     if target.exists() or workspace.exists():raise GymError('Generated project identifier collided. Please try again.',409)
                     workspace_stage=folder/'workspace'
                     shutil.copytree(stage,workspace_stage,ignore=shutil.ignore_patterns('exercise.json'))
-                    published=False
+                    published=False;workspace_published=False
                     try:
                         stage.rename(target);published=True
-                        workspace_stage.rename(workspace)
+                        workspace_stage.rename(workspace);workspace_published=True
                         self.gym.catalog.append(meta)
+                        published_project=meta
                     except Exception:
                         if published:
+                            (target/'exercise.json').unlink(missing_ok=True)
                             shutil.rmtree(target,ignore_errors=True)
+                        if workspace_published:
                             shutil.rmtree(workspace,ignore_errors=True)
                         raise
-                self.update(id,status='complete',message='Your project is ready',projectId=meta['id'],title=meta['title'])
         except Exception as e:
-            message=str(e) if isinstance(e,GymError) else 'The generator encountered a local error. No exercise was published; try again.'
-            self.update(id,status='failed',message=message)
+            if not published_project:
+                message=str(e) if isinstance(e,GymError) else 'The generator encountered a local error. No exercise was published; try again.'
+                self.update(id,status='failed',message=message)
         finally:
-            self.gym.job_lock.release()
+            try:
+                if published_project:
+                    self.update(id,status='complete',message='Your project is ready',projectId=published_project['id'],title=published_project['title'])
+            except OSError:
+                pass  # Publication is durable; restart recovers the job from its manifest.
+            finally:
+                self.gym.job_lock.release()

@@ -2,12 +2,14 @@
 import copy
 import json
 from pathlib import Path
+import shutil
 import tempfile
 import time
 import unittest
 from unittest.mock import patch
 
 from gym.core import Gym, GymError, MAX_FILE
+from gym.client import atomic_json
 from gym.generation import Generator, safe_path, validate
 
 PRIVATE = 'PRIVATE_REFERENCE_MARKER_7d33'
@@ -179,6 +181,54 @@ class GenerationJobTests(unittest.TestCase):
         self.assertEqual(list(self.gym.generated.iterdir()), [])
         self.assertFalse(self.gym.job_lock.locked())
 
+    def test_final_status_write_failure_keeps_publication_complete_and_recovers(self):
+        def fail_completion(path, job):
+            if job['status'] == 'complete': raise OSError('simulated final status write failure')
+            atomic_json(path, job)
+        with patch('gym.generation.atomic_json', side_effect=fail_completion):
+            job = self.start_with(lambda meta, files, *args: result(PRIVATE in files['main.go']))
+            self.assertEqual(job['status'], 'complete')
+            saved = self.gym.runtime/('generation-'+job['id']+'.json')
+            self.assertEqual(json.loads(saved.read_text())['status'], 'running')
+            work = self.gym.workspaces/job['projectId']/'main.go'
+            work.write_text('learner changes after publication')
+            restarted = Generator(Gym(self.tmp.name))
+            self.assertEqual(restarted.get(job['id'])['status'], 'complete')
+            self.assertEqual(restarted.get(job['id'])['projectId'], job['projectId'])
+            self.assertEqual(work.read_text(), 'learner changes after publication')
+        Generator(Gym(self.tmp.name))
+        self.assertEqual(json.loads(saved.read_text())['status'], 'complete')
+        self.assertFalse(self.gym.job_lock.locked())
+
+    def test_restart_recovers_manifest_published_before_workspace(self):
+        id = '123456789abc'+'0'*20
+        self.generator.jobs[id] = {'id': id, 'status': 'running'}
+        self.generator.update(id)
+        real_rename = Path.rename
+        def interrupt_workspace(path, dest):
+            if Path(dest).parent == self.gym.workspaces:
+                raise KeyboardInterrupt('simulated interruption after manifest publication')
+            return real_rename(path, dest)
+        self.gym.job_lock.acquire()
+        with patch.object(Path, 'rename', interrupt_workspace), \
+             patch('gym.generation.shutil.which', return_value='/bin/codex'), \
+             patch('gym.generation.run_process', side_effect=self.fake_codex), \
+             patch('gym.generation.execute', side_effect=lambda meta, files, *args: result(PRIVATE in files['main.go'])), \
+             self.assertRaises(KeyboardInterrupt):
+            self.generator.work(id, 'Build a small local journal analyzer.', 'go', 'A weekend')
+        project = 'custom-'+id[:12]
+        self.assertFalse((self.gym.workspaces/project).exists())
+        restarted_gym = Gym(self.tmp.name)
+        restarted = Generator(restarted_gym)
+        job = restarted.get(id)
+        self.assertEqual(job['status'], 'complete')
+        self.assertEqual(job['projectId'], project)
+        self.assertEqual(restarted_gym.read(project, 'main.go')['content'], candidate()['files'][1]['content'])
+        # A distinct job sharing the shortened project ID must not adopt this project.
+        other = id[:12]+'1'*20
+        atomic_json(self.gym.runtime/('generation-'+other+'.json'), {'id': other, 'status': 'running'})
+        self.assertEqual(Generator(restarted_gym).get(other)['status'], 'failed')
+
     def test_passing_or_unloadable_starter_is_not_published(self):
         for starter in [result(True), result(False, observed=False)]:
             with self.subTest(starter=starter):
@@ -217,6 +267,23 @@ class GenerationJobTests(unittest.TestCase):
         self.assertNotIn('private diagnostic', job['message'])
         self.assertFalse(self.gym.job_lock.locked())
 
+    def test_startup_failures_release_lock_and_keep_failed_job(self):
+        for failure in ['persistence', 'thread']:
+            with self.subTest(failure=failure):
+                target = 'pathlib.Path.replace' if failure == 'persistence' else 'threading.Thread.start'
+                error = OSError('simulated disk failure') if failure == 'persistence' else RuntimeError('no thread available')
+                with patch(target, side_effect=error), self.assertRaises(GymError):
+                    self.generator.start('Build a small local journal analyzer.', 'go')
+                self.assertFalse(self.gym.job_lock.locked())
+                self.assertTrue(all(job['status'] == 'failed' for job in self.generator.jobs.values()))
+                self.assertFalse(list(self.gym.runtime.glob('generation-*.tmp')))
+                self.assertEqual(list(self.gym.generated.iterdir()), [])
+        persisted = [json.loads(path.read_text()) for path in self.gym.runtime.glob('generation-*.json')]
+        self.assertEqual(len(persisted), 1)
+        self.assertEqual(persisted[0]['status'], 'failed')
+        job = self.start_with(lambda meta, files, *args: result(PRIVATE in files['main.go']))
+        self.assertEqual(job['status'], 'complete')
+
     def test_workspace_copy_failure_rolls_back_publication(self):
         def fail_workspace(source, dest, *args, **kwargs):
             Path(dest).mkdir()
@@ -243,6 +310,46 @@ class GenerationJobTests(unittest.TestCase):
         self.assertEqual(list(self.gym.generated.iterdir()), [])
         self.assertFalse(list(self.gym.workspaces.glob('custom-*')))
         self.assertEqual(len(self.gym.catalog), self.initial_count)
+
+    def test_publication_collision_preserves_workspace_created_after_precheck(self):
+        real_rename = Path.rename
+        work = []
+        def create_workspace_after_manifest(path, dest):
+            renamed = real_rename(path, dest)
+            if Path(dest).parent == self.gym.generated:
+                workspace = self.gym.workspaces/Path(dest).name
+                workspace.mkdir()
+                marker = workspace/'main.go'
+                marker.write_text('learner work created during publication')
+                work.append(marker)
+            return renamed
+        with patch.object(Path, 'rename', create_workspace_after_manifest):
+            job = self.start_with(lambda meta, files, *args: result(PRIVATE in files['main.go']))
+        self.assertEqual(job['status'], 'failed')
+        self.assertEqual(work[0].read_text(), 'learner work created during publication')
+        self.assertEqual(list(self.gym.generated.iterdir()), [])
+        self.assertEqual(len(Gym(self.tmp.name).catalog), self.initial_count)
+        self.assertEqual(work[0].read_text(), 'learner work created during publication')
+
+    def test_partial_rollback_cleanup_does_not_reload_broken_project(self):
+        real_rename = Path.rename
+        real_rmtree = shutil.rmtree
+        def fail_workspace(path, dest):
+            if Path(dest).parent == self.gym.workspaces:
+                raise OSError('simulated rename failure')
+            return real_rename(path, dest)
+        def partial_cleanup(path, *args, **kwargs):
+            if Path(path).parent == self.gym.generated:
+                (Path(path)/'main.go').unlink()
+                return  # Simulate ignore_errors leaving some files behind.
+            return real_rmtree(path, *args, **kwargs)
+        with patch.object(Path, 'rename', fail_workspace), \
+             patch('gym.generation.shutil.rmtree', side_effect=partial_cleanup):
+            job = self.start_with(lambda meta, files, *args: result(PRIVATE in files['main.go']))
+        self.assertEqual(job['status'], 'failed')
+        self.assertTrue(list(self.gym.generated.iterdir()))
+        self.assertFalse(list(self.gym.generated.glob('*/exercise.json')))
+        self.assertEqual(len(Gym(self.tmp.name).catalog), self.initial_count)
 
     def test_restart_marks_interrupted_jobs_failed_and_preserves_completed(self):
         for status in ['queued', 'running', 'complete']:

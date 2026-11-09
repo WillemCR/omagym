@@ -97,7 +97,13 @@ class Sessions:
                         continue
                     record['components'][role] = {'state':'launching'}
                     atomic_json(self.path(project), record)
-                    record['components'][role] = launcher.launch(role)
+                    try:
+                        record['components'][role] = launcher.launch(role)
+                    except OSError as error:
+                        record['components'][role] = {
+                            'state':'failed',
+                            'message':f'{role.title()} could not start: {error}. Fix the launcher and run omagym resume {project}.',
+                        }
                     atomic_json(self.path(project), record)
                 atomic_json(self.path(project), record)
                 return record
